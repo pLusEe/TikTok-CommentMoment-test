@@ -198,11 +198,8 @@
     @apply mt-1 grid place-items-center rounded-full bg-cover bg-center text-xs font-black text-white;
     width: 2.55rem;
     height: 2.55rem;
-    background-image:
-      radial-gradient(circle, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.62) 36%),
-      var(--avatar);
-    box-shadow: inset 0 0 0 0.45rem rgba(20, 20, 20, 0.88);
-    animation: spin 5.2s linear infinite;
+    background-image: var(--avatar);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.28);
   }
 
   .caption {
@@ -219,14 +216,6 @@
 
   .caption p {
     @apply m-0 text-[0.83rem] font-bold leading-snug text-white;
-  }
-
-  .caption-sound {
-    @apply mt-2 flex items-center gap-1 text-[0.74rem] font-bold text-white/95;
-  }
-
-  .caption-sound marquee {
-    @apply min-w-0;
   }
 
   .bottom-nav {
@@ -569,12 +558,6 @@
 
   to {
     transform: translateY(0);
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 

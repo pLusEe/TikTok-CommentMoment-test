@@ -441,7 +441,7 @@ function VideoChrome({ item, onShare }) {
         <ActionButton icon={commentIcon} label="评论" value={item.comments} />
         <ActionButton icon={favoriteIcon} label="收藏" value={item.favorites} />
         <ActionButton icon={shareIcon} label="分享" value={item.shares} onClick={onShare} />
-        <div className="music-disc" style={{ "--avatar": `url(${item.avatar})`, "--fallback": item.avatarColor }}>
+        <div className="music-disc" style={{ "--avatar": `url(${item.avatar})`, backgroundColor: item.avatarColor }}>
           <span>{item.avatarFallback}</span>
         </div>
       </aside>
@@ -449,10 +449,6 @@ function VideoChrome({ item, onShare }) {
       <section className="caption">
         <strong>{item.author}</strong>
         <p>{item.caption}</p>
-        <div className="caption-sound">
-          <span>♪</span>
-          <marquee>{item.handle} 的原声</marquee>
-        </div>
       </section>
     </div>
   );
