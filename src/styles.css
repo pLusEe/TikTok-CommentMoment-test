@@ -1,0 +1,598 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 22% 18%, rgba(48, 50, 58, 0.82) 0, rgba(10, 10, 12, 0) 34rem),
+      radial-gradient(circle at 78% 74%, rgba(254, 44, 85, 0.12), transparent 24rem),
+      #08080a;
+    color: #fff;
+  }
+
+  button,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .stage {
+    @apply grid min-h-dvh items-center justify-center p-6;
+  }
+
+  .phone {
+    @apply relative overflow-hidden bg-black shadow-phone;
+    width: min(414px, 100vw);
+    height: min(896px, 100dvh);
+    border-radius: 34px;
+  }
+
+  .app {
+    @apply relative h-full w-full overflow-hidden bg-black;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .feed-track {
+    @apply h-full w-full;
+    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .app.dragging .feed-track {
+    transition: none;
+  }
+
+  .video-screen {
+    @apply relative h-full w-full overflow-hidden bg-black;
+  }
+
+  .video-bg {
+    @apply block h-full w-full select-none object-cover;
+    -webkit-user-drag: none;
+  }
+
+  .video-chrome {
+    @apply pointer-events-none absolute inset-0 z-[5];
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.14) 16%, transparent 38%),
+      linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.44) 17%, transparent 45%);
+  }
+
+  .top-chrome {
+    @apply pointer-events-none absolute left-0 right-0 top-0 z-[30];
+    height: 7rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.24) 68%, transparent 100%);
+  }
+
+  .status-bar {
+    @apply absolute left-0 top-0 z-[6] h-[54px] w-full select-none object-fill;
+    -webkit-user-drag: none;
+  }
+
+  .top-tabs {
+    @apply absolute z-[7] grid items-center text-center text-[0.92rem] font-extrabold text-white/75;
+    left: 0.9rem;
+    right: 0.75rem;
+    top: 3.5rem;
+    grid-template-columns: 2.85rem repeat(6, minmax(0, 1fr)) 2.7rem;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .top-tabs span,
+  .top-tabs strong {
+    @apply min-w-0 whitespace-nowrap;
+  }
+
+  .top-tabs strong {
+    @apply relative text-white;
+  }
+
+  .live-icon {
+    @apply mx-auto block select-none object-contain;
+    width: 2.16rem;
+    height: 1.68rem;
+    -webkit-user-drag: none;
+  }
+
+  .search-icon {
+    @apply mx-auto block select-none object-contain;
+    width: 1.32rem;
+    height: 1.32rem;
+    -webkit-user-drag: none;
+  }
+
+  .top-tabs strong::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.5rem;
+    width: 1.62rem;
+    height: 0.13rem;
+    border-radius: 999px;
+    background: #fff;
+    transform: translateX(-50%);
+  }
+
+  .right-rail {
+    @apply absolute z-[8] grid justify-items-center;
+    gap: 0.62rem;
+    right: 0.5rem;
+    bottom: 5.05rem;
+    width: 3.45rem;
+  }
+
+  .right-rail button {
+    @apply pointer-events-auto grid justify-items-center border-0 bg-transparent p-0 text-white;
+    min-height: 3.76rem;
+    align-content: start;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .action-icon-crop {
+    @apply block overflow-hidden;
+    width: 2.86rem;
+    height: 2.12rem;
+  }
+
+  .action-icon-crop img {
+    @apply block h-full w-full select-none object-contain;
+    -webkit-user-drag: none;
+  }
+
+  .right-rail small {
+    @apply mt-1 block whitespace-nowrap text-[0.74rem] font-extrabold leading-none text-white;
+  }
+
+  .creator-avatar {
+    @apply relative mb-1 h-[3.95rem] w-[3.15rem];
+  }
+
+  .avatar-photo {
+    @apply block h-[3.04rem] w-[3.04rem] overflow-hidden rounded-full border-2 border-white bg-cover bg-center;
+  }
+
+  .avatar-photo b {
+    @apply grid h-full w-full place-items-center bg-black/25 text-lg font-black text-white;
+  }
+
+  .creator-avatar i {
+    @apply absolute bottom-[-0.03rem] left-1/2 rounded-full bg-tiktok-pink not-italic;
+    width: 1.3rem;
+    height: 1.3rem;
+    transform: translateX(-50%);
+  }
+
+  .creator-avatar i::before,
+  .creator-avatar i::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 999px;
+    background: #fff;
+    transform: translate(-50%, -50%);
+  }
+
+  .creator-avatar i::before {
+    width: 0.66rem;
+    height: 0.13rem;
+  }
+
+  .creator-avatar i::after {
+    width: 0.13rem;
+    height: 0.66rem;
+  }
+
+  .music-disc {
+    @apply mt-1 grid place-items-center rounded-full bg-cover bg-center text-xs font-black text-white;
+    width: 2.55rem;
+    height: 2.55rem;
+    background-image:
+      radial-gradient(circle, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.62) 36%),
+      var(--avatar);
+    box-shadow: inset 0 0 0 0.45rem rgba(20, 20, 20, 0.88);
+    animation: spin 5.2s linear infinite;
+  }
+
+  .caption {
+    @apply absolute z-[8] text-white;
+    left: 0.78rem;
+    right: 4.8rem;
+    bottom: 5.35rem;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.58);
+  }
+
+  .caption strong {
+    @apply mb-1 block text-[0.95rem] font-extrabold;
+  }
+
+  .caption p {
+    @apply m-0 text-[0.83rem] font-bold leading-snug text-white;
+  }
+
+  .caption-sound {
+    @apply mt-2 flex items-center gap-1 text-[0.74rem] font-bold text-white/95;
+  }
+
+  .caption-sound marquee {
+    @apply min-w-0;
+  }
+
+  .bottom-nav {
+    @apply absolute bottom-0 left-0 right-0 z-[9] grid h-[3.68rem] grid-cols-5 place-items-center bg-black;
+    padding-bottom: 0.18rem;
+  }
+
+  .bottom-nav .nav-tab {
+    @apply pointer-events-auto grid h-full w-full place-items-center border-0 bg-transparent p-0 text-white/65;
+    align-content: center;
+  }
+
+  .nav-icon-frame {
+    @apply block overflow-hidden;
+    width: 4.68rem;
+    height: 1.82rem;
+  }
+
+  .nav-icon-frame img {
+    @apply block select-none object-contain;
+    width: 4.68rem;
+    height: 3.04rem;
+    transform: translateY(-0.08rem);
+    -webkit-user-drag: none;
+  }
+
+  .nav-label {
+    @apply block text-[0.72rem] font-extrabold leading-none;
+    margin-top: 0.24rem;
+  }
+
+  .bottom-nav .active {
+    @apply text-white;
+  }
+
+  .publish-tab img {
+    @apply block select-none object-contain;
+    width: 4.1rem;
+    height: 2.55rem;
+    -webkit-user-drag: none;
+  }
+
+  .play-toggle {
+    @apply pointer-events-none absolute left-1/2 top-[44.5%] z-[20] h-[3.36rem] w-[2.92rem] opacity-0 transition;
+    background: rgba(255, 255, 255, 0.46);
+    clip-path: polygon(12% 9%, 17% 7%, 91% 47%, 91% 53%, 17% 93%, 12% 91%);
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.18));
+    transform: translate(-42%, -50%) scale(0.96);
+  }
+
+  .play-toggle.visible {
+    @apply opacity-100;
+    transform: translate(-42%, -50%) scale(1);
+  }
+
+  .progress-wrap {
+    @apply absolute left-0 right-0 z-[18] flex items-center px-0;
+    bottom: 3.42rem;
+    height: 0.78rem;
+    transition: opacity 120ms ease;
+  }
+
+  .progress-wrap.hidden-while-dragging {
+    @apply pointer-events-none opacity-0;
+  }
+
+  .progress-track {
+    @apply relative w-full bg-white/20;
+    height: 1px;
+  }
+
+  .progress-wrap.dragging .progress-track {
+    height: 5px;
+  }
+
+  .progress-fill {
+    @apply h-full bg-white/55;
+  }
+
+  .progress-thumb {
+    @apply absolute top-1/2 rounded-full border-0 bg-white/70 opacity-0;
+    width: 0.75rem;
+    height: 0.75rem;
+    transform: translate(-50%, -50%);
+  }
+
+  .progress-wrap.dragging .progress-thumb {
+    @apply opacity-100;
+  }
+
+  .moment-marker {
+    @apply absolute z-[19] hidden;
+    left: var(--x);
+    bottom: 4.12rem;
+    transform: translateX(-50%);
+  }
+
+  .moment-marker.show {
+    @apply block;
+  }
+
+  .marker-line {
+    @apply mx-auto rounded-full bg-tiktok-cyan;
+    width: 2px;
+    height: 0.85rem;
+    margin-bottom: 0.08rem;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.24);
+  }
+
+  .marker-avatar,
+  .bubble-avatar,
+  .mini-avatar {
+    @apply inline-grid place-items-center rounded-full bg-[#2d6f1f] font-extrabold text-white;
+  }
+
+  .marker-avatar {
+    @apply border-2 border-white text-xs;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .moment-bubble {
+    @apply absolute z-[21] flex items-center gap-3 rounded-[18px] px-3 py-3 shadow-2xl backdrop-blur-md transition;
+    background: rgba(12, 12, 15, 0.82);
+    left: 1rem;
+    right: 4.9rem;
+    bottom: 11.25rem;
+  }
+
+  .moment-bubble.hidden {
+    @apply pointer-events-none opacity-0;
+    transform: translateY(0.75rem);
+  }
+
+  .bubble-avatar {
+    @apply shrink-0;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .bubble-meta {
+    @apply mb-0.5 text-xs text-white/60;
+  }
+
+  .bubble-text {
+    @apply text-sm leading-tight;
+  }
+
+  .longpress-tip {
+    @apply absolute left-1/2 top-[48%] z-30 w-56 rounded-[18px] bg-black/75 px-4 py-3 text-center text-white shadow-2xl backdrop-blur-md;
+    transform: translate(-50%, -50%);
+  }
+
+  .longpress-tip span {
+    @apply block font-extrabold;
+  }
+
+  .longpress-tip small {
+    @apply text-white/65;
+  }
+
+  .sheet,
+  .composer {
+    @apply absolute bottom-0 left-0 right-0 z-40 bg-[#f7f7f7] text-[#111] shadow-2xl;
+    border-radius: 22px 22px 0 0;
+    animation: sheetUp 220ms ease both;
+  }
+
+  .sheet {
+    min-height: 39rem;
+  }
+
+  .sheet-handle {
+    @apply mx-auto mt-2 rounded-full bg-[#d5d5d5];
+    width: 2.25rem;
+    height: 0.24rem;
+  }
+
+  .sheet-head {
+    @apply grid h-14 items-center text-center text-lg;
+    grid-template-columns: 3rem 1fr 3rem;
+  }
+
+  .sheet-head button {
+    @apply border-0 bg-transparent text-3xl;
+  }
+
+  .sheet-search {
+    transform: rotate(-20deg);
+  }
+
+  .moment-card {
+    @apply mx-3 mb-3 mt-1 flex w-[calc(100%-1.4rem)] items-center gap-3 rounded-2xl border-0 bg-gradient-to-br from-[#111] to-[#2c2c35] p-3 text-left text-white;
+  }
+
+  .moment-card-icon {
+    @apply grid place-items-center rounded-full bg-tiktok-pink text-xl;
+    width: 2.45rem;
+    height: 2.45rem;
+  }
+
+  .moment-card small {
+    @apply mt-0.5 block text-xs text-white/65;
+  }
+
+  .people-row,
+  .share-actions {
+    @apply flex gap-3 overflow-x-auto px-3 pb-4 pt-1;
+    scrollbar-width: none;
+  }
+
+  .people-row::-webkit-scrollbar,
+  .share-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .person,
+  .share-actions button {
+    @apply shrink-0 border-0 bg-transparent text-center text-[#111];
+    flex-basis: 4.3rem;
+  }
+
+  .person span,
+  .share-actions span {
+    @apply mx-auto mb-1 grid place-items-center rounded-full bg-[#e8e8e8] text-xl font-extrabold;
+    width: 3.15rem;
+    height: 3.15rem;
+  }
+
+  .person.selected span {
+    @apply bg-[#2d6f1f] text-white outline outline-4 outline-tiktok-pink;
+  }
+
+  .person.add span {
+    @apply bg-[#8f46f5] text-white;
+  }
+
+  .person small,
+  .share-actions small {
+    @apply block whitespace-nowrap text-xs text-[#222];
+  }
+
+  .share-actions {
+    @apply border-t border-[#e5e5e5] pt-4;
+  }
+
+  .share-actions span {
+    @apply bg-white;
+  }
+
+  .composer {
+    min-height: 37rem;
+    padding: 0 1rem 1.2rem;
+  }
+
+  .composer-head {
+    @apply grid h-16 items-center gap-3;
+    grid-template-columns: 2rem 1fr auto;
+  }
+
+  .composer-head button {
+    @apply border-0 bg-transparent text-3xl;
+  }
+
+  .composer-head span {
+    @apply text-sm text-[#666];
+  }
+
+  .mini-preview {
+    @apply relative h-36 overflow-hidden rounded-[18px] bg-black;
+  }
+
+  .mini-preview img {
+    @apply h-full w-full object-cover brightness-75;
+  }
+
+  .mini-play {
+    @apply absolute inset-0 grid place-items-center text-3xl text-white;
+  }
+
+  .mini-pin {
+    @apply absolute bottom-3 left-3 rounded-full bg-black/60 px-2 py-1 text-xs text-white;
+  }
+
+  .comment-box {
+    @apply mt-4 block;
+  }
+
+  .comment-box span,
+  .send-to span {
+    @apply mb-1 block text-xs text-[#777];
+  }
+
+  .comment-box textarea {
+    @apply h-20 w-full resize-none rounded-2xl border-0 bg-white p-3 text-[#111] outline-0;
+  }
+
+  .emoji-row {
+    @apply my-4 flex gap-2;
+  }
+
+  .emoji-row button {
+    @apply h-11 flex-1 rounded-2xl border-0 bg-white text-2xl;
+  }
+
+  .emoji-row button.active {
+    @apply bg-[#111];
+  }
+
+  .send-to {
+    @apply mb-4 flex items-center justify-between;
+  }
+
+  .send-to span {
+    @apply m-0;
+  }
+
+  .mini-avatar {
+    @apply mr-1 text-xs;
+    width: 1.35rem;
+    height: 1.35rem;
+    vertical-align: middle;
+  }
+
+  .send-button {
+    @apply h-[3.25rem] w-full rounded-full border-0 bg-tiktok-pink font-extrabold text-white;
+  }
+
+  .toast {
+    @apply absolute left-1/2 z-50 rounded-full bg-black/80 px-4 py-3 text-white shadow-xl;
+    bottom: 6rem;
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    background: #000;
+  }
+
+  .stage {
+    display: block;
+    min-height: 100dvh;
+    padding: 0;
+  }
+
+  .phone {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
