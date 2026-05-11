@@ -263,9 +263,8 @@ function PhonePrototype() {
     const dx = event.clientX - pointerStart.current.x;
     const dy = event.clientY - pointerStart.current.y;
     const elapsed = Math.max(1, performance.now() - pointerStart.current.time);
-    const velocity = dy / elapsed;
     const height = appRef.current?.clientHeight || 896;
-    const shouldFlip = Math.abs(dy) > height * 0.16 || Math.abs(velocity) > 0.6;
+    const shouldFlip = Math.abs(dy) >= height * 0.5;
     const nextIndex = activeIndex + (dy < 0 ? 1 : -1);
     const isTap = !pointerStart.current.moved && Math.abs(dx) < 10 && Math.abs(dy) < 10 && elapsed < 520;
 
