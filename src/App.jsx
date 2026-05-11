@@ -356,17 +356,17 @@ function PhonePrototype() {
                   maybeShowBubble(nextTime);
                 }}
               />
-              <VideoChrome
-                item={item}
-                isActive={index === activeIndex}
-                onShare={() => {
-                  setPanel("share");
-                  setPausedState(true);
-                }}
-              />
             </article>
           ))}
         </div>
+
+        <VideoChrome
+          item={activeItem}
+          onShare={() => {
+            setPanel("share");
+            setPausedState(true);
+          }}
+        />
 
         <TopChrome />
 
