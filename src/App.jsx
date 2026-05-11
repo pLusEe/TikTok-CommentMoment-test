@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const videoChicks = new URL("../assets/video-chicks.mp4", import.meta.url).href;
 const videoCreator = new URL("../assets/video-creator.mp4", import.meta.url).href;
+const videoThird = new URL("../assets/video-third.mp4", import.meta.url).href;
 const feedChicks = new URL("../assets/feed-chicks.jpg", import.meta.url).href;
+const feedCreator = new URL("../assets/feed-creator.jpg", import.meta.url).href;
 const posterDonkey = new URL("../assets/poster-donkey.jpg", import.meta.url).href;
 
 const statusBar = new URL("../assets/ui-kit/Status Bar.svg", import.meta.url).href;
@@ -48,6 +50,21 @@ const FEED_ITEMS = [
     comments: "613",
     favorites: "3791",
     shares: "3.1万",
+  },
+  {
+    src: videoThird,
+    poster: feedCreator,
+    preview: feedCreator,
+    author: "Mika Lens",
+    handle: "@mika.lens",
+    caption: "今天这一幕太像电影了 #citywalk #dailyvlog ⋯ 查看原内容",
+    avatar: feedCreator,
+    avatarFallback: "M",
+    avatarColor: "#c45f35",
+    likes: "18.6万",
+    comments: "2482",
+    favorites: "1.2万",
+    shares: "4.8万",
   },
 ];
 
@@ -108,6 +125,16 @@ function PhonePrototype() {
   const currentTime = progress * duration;
   const markerX = moment.exists && moment.videoIndex === activeIndex ? `${Math.max(2, Math.min(98, (moment.time / duration) * 100))}%` : "35%";
   const people = useMemo(() => PEOPLE, []);
+  const renderSlots = useMemo(() => {
+    const total = FEED_ITEMS.length;
+    const previous = (activeIndex - 1 + total) % total;
+    const next = (activeIndex + 1) % total;
+    return [
+      { slot: "previous", index: previous, item: FEED_ITEMS[previous] },
+      { slot: "current", index: activeIndex, item: FEED_ITEMS[activeIndex] },
+      { slot: "next", index: next, item: FEED_ITEMS[next] },
+    ];
+  }, [activeIndex]);
 
   const showToast = (message) => {
     setToast(message);
@@ -141,7 +168,8 @@ function PhonePrototype() {
   };
 
   const goToVideo = (nextIndex) => {
-    const clamped = Math.max(0, Math.min(FEED_ITEMS.length - 1, nextIndex));
+    const total = FEED_ITEMS.length;
+    const clamped = ((nextIndex % total) + total) % total;
     setPanel(null);
     setShowBubble(false);
     setDragOffset(0);
@@ -211,9 +239,6 @@ function PhonePrototype() {
     if (!pointerStart.current) return;
     const dy = event.clientY - pointerStart.current.y;
     const dx = event.clientX - pointerStart.current.x;
-    const canDragDown = activeIndex > 0 || dy < 0;
-    const canDragUp = activeIndex < FEED_ITEMS.length - 1 || dy > 0;
-    const resistance = canDragDown && canDragUp ? 1 : 0.26;
 
     if (Math.abs(dy) > 10 || Math.abs(dx) > 10) {
       pointerStart.current.moved = true;
@@ -222,7 +247,7 @@ function PhonePrototype() {
       closePanels();
     }
 
-    setDragOffset(pointerStart.current.moved ? dy * resistance : 0);
+    setDragOffset(pointerStart.current.moved ? dy : 0);
   };
 
   const handlePointerUp = (event) => {
@@ -249,7 +274,7 @@ function PhonePrototype() {
     if (isTap && !panel) {
       setPausedState(!isPaused);
       setDragOffset(0);
-    } else if (shouldFlip && nextIndex >= 0 && nextIndex < FEED_ITEMS.length) {
+    } else if (shouldFlip) {
       goToVideo(nextIndex);
     } else {
       setDragOffset(0);
@@ -309,10 +334,10 @@ function PhonePrototype() {
       >
         <div
           className="feed-track"
-          style={{ transform: `translate3d(0, calc(${-activeIndex * 100}% + ${dragOffset}px), 0)` }}
+          style={{ transform: `translate3d(0, calc(-100% + ${dragOffset}px), 0)` }}
         >
-          {FEED_ITEMS.map((item, index) => (
-            <article className="video-screen" data-index={index} key={item.src}>
+          {renderSlots.map(({ item, index, slot }) => (
+            <article className="video-screen" data-index={index} data-slot={slot} key={`${slot}-${item.src}`}>
               <video
                 ref={(node) => {
                   videoRefs.current[index] = node;
