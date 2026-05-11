@@ -253,8 +253,8 @@
 
   .publish-tab img {
     @apply block select-none object-contain;
-    width: 4.1rem;
-    height: 2.55rem;
+    width: 4.5rem;
+    height: 2.8rem;
     -webkit-user-drag: none;
   }
 
