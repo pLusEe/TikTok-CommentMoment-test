@@ -76,7 +76,7 @@ const FEED_ITEMS = [
 
 const EMOJIS = ["😂", "👍", "😍", "😮", "🥹", "🙏"];
 const PEOPLE = [
-  { avatar: "J", name: "jiayiwang57", suffix: "8", online: true, photo: janeAvatar },
+  { avatar: "J", name: "jiayiwang57", suffix: "8", online: true },
   { avatar: "S", name: "Susy" },
   { avatar: "D", name: "Dean Baas", photo: posterDonkey },
   { avatar: "A", name: "aan600" },
@@ -282,7 +282,6 @@ function PhonePrototype() {
       videoIndex: activeIndex,
       time: Math.round(timeOverride),
       author: "jiayi",
-      avatar: janeAvatar,
       fallback: "J",
       text: comment.trim(),
       seenOnce: false,
@@ -823,7 +822,7 @@ function ComposerSheet({ activeItem, time, comment, setComment, onBack, onSend }
       </div>
       <div className="send-to">
         <span>发送给</span>
-        <strong><span className="mini-avatar"><img src={janeAvatar} alt="" /></span> Jess</strong>
+        <strong><span className="mini-avatar">J</span> Jess</strong>
       </div>
       <button className="send-button" type="button" onClick={onSend}>发送时刻评论</button>
     </section>
