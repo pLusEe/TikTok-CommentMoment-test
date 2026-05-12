@@ -22,6 +22,7 @@ const inboxNav = new URL("../assets/ui-kit/Frame 40.svg", import.meta.url).href;
 const profileNav = new URL("../assets/ui-kit/Frame 41.svg", import.meta.url).href;
 const searchIcon = new URL("../assets/ui-kit/search.png", import.meta.url).href;
 const liveIcon = new URL("../assets/ui-kit/live.png", import.meta.url).href;
+const janeAvatar = new URL("../assets/ui-kit/Frame 36.svg", import.meta.url).href;
 const shareSheetSvg = new URL("../assets/ui-kit/发送给.svg", import.meta.url).href;
 const selectedShareSheetSvg = new URL("../assets/ui-kit/发送给-选中头像.svg", import.meta.url).href;
 
@@ -75,12 +76,35 @@ const FEED_ITEMS = [
 
 const EMOJIS = ["😂", "👍", "😍", "😮", "🥹", "🙏"];
 const PEOPLE = [
-  { avatar: "J", name: "jiayiwang57", suffix: "8", online: true },
+  { avatar: "J", name: "jiayiwang57", suffix: "8", online: true, photo: janeAvatar },
   { avatar: "S", name: "Susy" },
   { avatar: "D", name: "Dean Baas", photo: posterDonkey },
   { avatar: "A", name: "aan600" },
   { avatar: "S", name: "Samigurl27", photo: feedCreator },
   { avatar: "+", name: "邀请好友聊", add: true },
+];
+
+const DEFAULT_MOMENTS = [
+  {
+    id: "jane-donkey",
+    videoIndex: 1,
+    time: 5,
+    author: "jane",
+    avatar: janeAvatar,
+    fallback: "J",
+    text: "这只驴有一点像你啊😀😀",
+    seenOnce: false,
+  },
+  {
+    id: "jane-third",
+    videoIndex: 2,
+    time: 6,
+    author: "jane",
+    avatar: janeAvatar,
+    fallback: "J",
+    text: "bro还有一把枪",
+    seenOnce: false,
+  },
 ];
 
 function formatTime(seconds) {
@@ -115,7 +139,7 @@ function PhonePrototype() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [panel, setPanel] = useState(null);
-  const [friendView, setFriendView] = useState(false);
+  const [friendView, setFriendView] = useState(true);
   const [toast, setToast] = useState("");
   const [comment, setComment] = useState("");
   const [showBubble, setShowBubble] = useState(false);
@@ -126,19 +150,15 @@ function PhonePrototype() {
   const [draftMomentTime, setDraftMomentTime] = useState(0);
   const [isMomentEnabled, setIsMomentEnabled] = useState(false);
   const [isMomentScrubbing, setIsMomentScrubbing] = useState(false);
-  const [moment, setMoment] = useState({
-    exists: false,
-    videoIndex: 0,
-    time: 7,
-    text: "",
-    seenOnce: false,
-  });
+  const [moments, setMoments] = useState(DEFAULT_MOMENTS);
 
   const activeItem = FEED_ITEMS[activeIndex];
   const activeVideo = videoRefs.current[activeIndex];
   const duration = Number.isFinite(activeVideo?.duration) && activeVideo.duration > 0 ? activeVideo.duration : 20;
   const currentTime = progress * duration;
-  const markerX = moment.exists && moment.videoIndex === activeIndex ? `${Math.max(2, Math.min(98, (moment.time / duration) * 100))}%` : "35%";
+  const momentItems = Array.isArray(moments) ? moments : DEFAULT_MOMENTS;
+  const activeMoment = momentItems.find((item) => item.videoIndex === activeIndex);
+  const markerX = activeMoment ? `${Math.max(2, Math.min(98, (activeMoment.time / duration) * 100))}%` : "35%";
   const nativeScrubPercent = duration > 0 ? Math.max(0, Math.min(100, (draftMomentTime / duration) * 100)) : 0;
   const people = useMemo(() => PEOPLE, []);
   const renderSlots = useMemo(() => {
@@ -242,29 +262,32 @@ function PhonePrototype() {
   };
 
   const forceBubble = () => {
-    if (!moment.exists || moment.videoIndex !== activeIndex) return;
+    if (!activeMoment) return;
     setShowBubble(true);
     window.clearTimeout(bubbleTimer.current);
     bubbleTimer.current = window.setTimeout(() => setShowBubble(false), 3000);
-    setMoment((value) => ({ ...value, seenOnce: true }));
+    setMoments((value) => value.map((item) => (item.id === activeMoment.id ? { ...item, seenOnce: true } : item)));
   };
 
   const maybeShowBubble = (time) => {
-    if (!friendView || !moment.exists || moment.videoIndex !== activeIndex || moment.seenOnce) return;
-    if (Math.abs(time - moment.time) < 0.35) {
+    if (!friendView || !activeMoment || activeMoment.seenOnce) return;
+    if (Math.abs(time - activeMoment.time) < 0.35) {
       forceBubble();
     }
   };
 
   const saveMoment = (timeOverride = currentTime) => {
     const nextMoment = {
-      exists: true,
+      id: `sent-${activeIndex}`,
       videoIndex: activeIndex,
       time: Math.round(timeOverride),
+      author: "jiayi",
+      avatar: janeAvatar,
+      fallback: "J",
       text: comment.trim(),
       seenOnce: false,
     };
-    setMoment(nextMoment);
+    setMoments((value) => [...value.filter((item) => item.videoIndex !== activeIndex), nextMoment]);
     setFriendView(true);
     setPanel(null);
     showToast("已发送给 Jess");
@@ -443,16 +466,20 @@ function PhonePrototype() {
 
         <TopChrome />
 
-        <div className={`moment-marker ${moment.exists && moment.videoIndex === activeIndex ? "show" : ""} ${moment.seenOnce ? "collapsed" : ""}`} style={{ "--x": markerX }}>
-          <button className="marker-avatar" type="button" onClick={forceBubble}>J</button>
+        <div className={`moment-marker ${activeMoment ? "show" : ""} ${activeMoment?.seenOnce ? "collapsed" : ""}`} style={{ "--x": markerX }}>
+          <button className="marker-avatar" type="button" onClick={forceBubble}>
+            {activeMoment?.avatar ? <img src={activeMoment.avatar} alt="" /> : activeMoment?.fallback || "J"}
+          </button>
           <button className="marker-line" type="button" aria-label="查看时刻评论" onClick={forceBubble} />
         </div>
 
-        <div className={`moment-bubble ${showBubble ? "" : "hidden"} ${moment.text ? "" : "textless"} ${moment.text.length > 18 ? "long" : ""}`}>
-          <div className="bubble-avatar">J</div>
+        <div className={`moment-bubble ${showBubble && activeMoment ? "" : "hidden"} ${activeMoment?.text ? "" : "textless"} ${(activeMoment?.text || "").length > 18 ? "long" : ""}`}>
+          <div className="bubble-avatar">
+            {activeMoment?.avatar ? <img src={activeMoment.avatar} alt="" /> : activeMoment?.fallback || "J"}
+          </div>
           <div>
-            <div className="bubble-meta">jiayi 在 {formatTime(moment.time)} 标记时刻</div>
-            {moment.text && <div className="bubble-text">{moment.text}</div>}
+            <div className="bubble-meta">{activeMoment?.author || "jiayi"} 在 {formatTime(activeMoment?.time || 0)} 标记时刻</div>
+            {activeMoment?.text && <div className="bubble-text">{activeMoment.text}</div>}
           </div>
         </div>
 
@@ -489,7 +516,7 @@ function PhonePrototype() {
           onPointerUp={(event) => {
             event.currentTarget.releasePointerCapture(event.pointerId);
             event.currentTarget.classList.remove("dragging");
-            if (moment.exists && Math.abs(currentTime - moment.time) < 1) forceBubble();
+            if (activeMoment && Math.abs(currentTime - activeMoment.time) < 1) forceBubble();
           }}
           onPointerCancel={(event) => {
             event.currentTarget.classList.remove("dragging");
@@ -796,7 +823,7 @@ function ComposerSheet({ activeItem, time, comment, setComment, onBack, onSend }
       </div>
       <div className="send-to">
         <span>发送给</span>
-        <strong><span className="mini-avatar">J</span> Jess</strong>
+        <strong><span className="mini-avatar"><img src={janeAvatar} alt="" /></span> Jess</strong>
       </div>
       <button className="send-button" type="button" onClick={onSend}>发送时刻评论</button>
     </section>
