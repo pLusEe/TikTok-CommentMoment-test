@@ -23,8 +23,7 @@ const profileNav = new URL("../assets/ui-kit/Frame 41.svg", import.meta.url).hre
 const searchIcon = new URL("../assets/ui-kit/search.png", import.meta.url).href;
 const liveIcon = new URL("../assets/ui-kit/live.png", import.meta.url).href;
 const shareSheetSvg = new URL("../assets/ui-kit/发送给.svg", import.meta.url).href;
-const sendToNormalSvg = new URL("../assets/ui-kit/发送给4.svg", import.meta.url).href;
-const sendToMomentSvg = new URL("../assets/ui-kit/发送给5.svg", import.meta.url).href;
+const selectedShareSheetSvg = new URL("../assets/ui-kit/发送给-选中头像.svg", import.meta.url).href;
 
 const FEED_ITEMS = [
   {
@@ -625,7 +624,6 @@ function ShareSheet({
 }) {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const quickEmojis = ["🥰", "👍", "😂", "😎", "🥺", "🙏"];
-  const progressPercent = `${Math.max(0, Math.min(100, (draftMomentTime / duration) * 100))}%`;
 
   if (!selectedPerson) {
     return (
@@ -646,69 +644,59 @@ function ShareSheet({
   }
 
   return (
-    <section className={`sheet figma-selected-share ${isMomentEnabled ? "moment-enabled" : ""} ${isMomentScrubbing ? "scrubbing" : ""}`} aria-label="发送给">
-      <img className="figma-share-state" src={isMomentEnabled ? sendToMomentSvg : sendToNormalSvg} alt="" />
-      <button className="share-svg-close figma-close-hit" type="button" aria-label="关闭" onClick={onClose} />
-      <textarea
-        className="figma-share-textarea"
-        value={comment}
-        placeholder="有什么想和朋友说的..."
-        onChange={(event) => setComment(event.target.value)}
-      />
-      <div className="figma-emoji-hit-row" aria-label="快捷表情">
-        {quickEmojis.map((emoji) => (
-          <button
-            key={emoji}
-            type="button"
-            aria-label={`输入 ${emoji}`}
-            onClick={() => {
-              setComment((value) => `${value}${emoji}`);
-              setSelectedEmoji(emoji);
-            }}
-          />
-        ))}
-      </div>
-      <button className="figma-moment-hit" type="button" aria-label={isMomentEnabled ? `时刻分享 留在 ${formatTime(draftMomentTime)}` : "时刻分享 把留言留在视频里的某一秒"} onClick={onToggleMoment} />
-      <button className="figma-send-hit" type="button" aria-label="发送" onClick={onSend} />
+    <section className={`sheet rebuilt-share-sheet ${isMomentEnabled ? "moment-enabled" : ""} ${isMomentScrubbing ? "scrubbing" : ""}`} aria-label="发送给">
+      <div className="rebuilt-share-main">
+        <div className="rebuilt-share-top">
+          <img className="share-sheet-svg" src={selectedShareSheetSvg} alt="" />
+          <button className="share-svg-close rebuilt-close-hit" type="button" aria-label="关闭" onClick={onClose} />
+        </div>
 
-      {isMomentEnabled && (
-        <>
-          <strong className="figma-time-label">留在 {formatTime(draftMomentTime)}</strong>
-          <button className="figma-time-step minus" type="button" aria-label="-1s" onClick={() => onMomentStep(-1)} />
-          <button className="figma-time-step plus" type="button" aria-label="+1s" onClick={() => onMomentStep(1)} />
-          <div
-            className="figma-time-slider"
-            role="slider"
-            aria-label="时刻分享时间点"
-            aria-valuemin="0"
-            aria-valuemax={Math.round(duration)}
-            aria-valuenow={Math.round(draftMomentTime)}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              event.currentTarget.setPointerCapture(event.pointerId);
-              event.currentTarget.classList.add("dragging");
-              onMomentScrubStart();
-              updateTimeFromPointer(event, duration, onMomentTimeChange);
-            }}
-            onPointerMove={(event) => {
-              if (!event.currentTarget.classList.contains("dragging")) return;
-              updateTimeFromPointer(event, duration, onMomentTimeChange);
-            }}
-            onPointerUp={(event) => {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-              event.currentTarget.classList.remove("dragging");
-              onMomentScrubEnd();
-            }}
-            onPointerCancel={(event) => {
-              event.currentTarget.classList.remove("dragging");
-              onMomentScrubEnd();
-            }}
-          >
-            <div className="figma-time-fill" style={{ width: progressPercent }} />
-            <span className="figma-time-thumb" style={{ left: progressPercent }} />
+        <div className="rebuilt-share-body">
+          <textarea
+            className="rebuilt-message-input"
+            value={comment}
+            placeholder="有什么想和朋友说的..."
+            onChange={(event) => setComment(event.target.value)}
+          />
+
+          <div className="rebuilt-emoji-row" aria-label="快捷表情">
+            {quickEmojis.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                aria-label={`输入 ${emoji}`}
+                onClick={() => {
+                  setComment((value) => `${value}${emoji}`);
+                  setSelectedEmoji(emoji);
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
-        </>
-      )}
+
+          <button className={`rebuilt-moment-toggle ${isMomentEnabled ? "enabled" : ""}`} type="button" onClick={onToggleMoment}>
+            <span className="rebuilt-check" />
+            <span className="rebuilt-moment-copy">
+              <strong>时刻分享</strong>
+              <small>{isMomentEnabled ? `留在 ${formatTime(draftMomentTime)}` : "把留言留在视频里的某一秒"}</small>
+            </span>
+          </button>
+
+          {isMomentEnabled && (
+            <MomentTimeControl
+              duration={duration}
+              time={draftMomentTime}
+              onStep={onMomentStep}
+              onScrubStart={onMomentScrubStart}
+              onScrubEnd={onMomentScrubEnd}
+              onTimeChange={onMomentTimeChange}
+            />
+          )}
+
+          <button className="rebuilt-send-button" type="button" onClick={onSend}>发送</button>
+        </div>
+      </div>
 
       {isMomentEnabled && (
         <div className="moment-scrub-mini">
