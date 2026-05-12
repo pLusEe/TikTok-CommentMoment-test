@@ -458,7 +458,7 @@
   }
 
   .rebuilt-emoji-row {
-    @apply mb-4 flex items-center justify-between;
+    @apply mb-4 flex items-center justify-center gap-7 border-b border-[#eeeeee] pb-3;
   }
 
   .rebuilt-emoji-row button {
@@ -514,12 +514,15 @@
   }
 
   .rebuilt-share-sheet.scrubbing {
-    background: rgba(255, 255, 255, 0.08);
+    background: transparent;
   }
 
-  .rebuilt-share-sheet.scrubbing .rebuilt-share-main {
-    @apply pointer-events-none;
-    opacity: 0.16;
+  .rebuilt-share-sheet.scrubbing .rebuilt-share-top,
+  .rebuilt-share-sheet.scrubbing .rebuilt-message-input,
+  .rebuilt-share-sheet.scrubbing .rebuilt-emoji-row,
+  .rebuilt-share-sheet.scrubbing .rebuilt-moment-toggle,
+  .rebuilt-share-sheet.scrubbing .rebuilt-send-button {
+    @apply pointer-events-none opacity-0;
   }
 
   .selected-svg-mode {
@@ -844,6 +847,7 @@
 
   .moment-time-control {
     @apply mb-3 bg-white px-0 pb-2.5 pt-1;
+    transition: opacity 140ms ease;
   }
 
   .moment-time-control.compact {
@@ -891,16 +895,9 @@
     transform: translate(-50%, -50%);
   }
 
-  .moment-scrub-mini {
-    @apply pointer-events-none absolute left-4 right-4 z-[45] opacity-0;
-    bottom: 0.95rem;
-    transform: translateY(0.7rem);
-    transition: opacity 140ms ease, transform 180ms ease;
-  }
-
-  .rebuilt-share-sheet.scrubbing .moment-scrub-mini {
-    @apply pointer-events-auto opacity-100;
-    transform: translateY(0);
+  .rebuilt-share-sheet.scrubbing .moment-time-control {
+    @apply bg-transparent;
+    opacity: 1;
   }
 
   .selected-svg-mode.scrubbing .share-selected-top,

@@ -697,20 +697,6 @@ function ShareSheet({
           <button className="rebuilt-send-button" type="button" onClick={onSend}>发送</button>
         </div>
       </div>
-
-      {isMomentEnabled && (
-        <div className="moment-scrub-mini">
-          <MomentTimeControl
-            compact
-            duration={duration}
-            time={draftMomentTime}
-            onStep={onMomentStep}
-            onScrubStart={onMomentScrubStart}
-            onScrubEnd={onMomentScrubEnd}
-            onTimeChange={onMomentTimeChange}
-          />
-        </div>
-      )}
     </section>
   );
 }
@@ -727,13 +713,6 @@ function MomentTimeControl({ compact = false, duration, time, onStep, onScrubSta
 
   return (
     <div className={`moment-time-control ${compact ? "compact" : ""}`}>
-      {compact && (
-        <div className="moment-time-row">
-          <button type="button" onClick={() => onStep(-1)}>-1s</button>
-          <strong>评论在 {formatTime(time)}</strong>
-          <button type="button" onClick={() => onStep(1)}>+1s</button>
-        </div>
-      )}
       <div
         className="moment-time-slider"
         role="slider"
