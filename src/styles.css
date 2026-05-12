@@ -365,19 +365,6 @@
     @apply text-sm leading-tight;
   }
 
-  .longpress-tip {
-    @apply absolute left-1/2 top-[48%] z-30 w-56 rounded-[18px] bg-black/75 px-4 py-3 text-center text-white shadow-2xl backdrop-blur-md;
-    transform: translate(-50%, -50%);
-  }
-
-  .longpress-tip span {
-    @apply block font-extrabold;
-  }
-
-  .longpress-tip small {
-    @apply text-white/65;
-  }
-
   .sheet,
   .composer {
     @apply absolute bottom-0 left-0 right-0 z-40 bg-[#f7f7f7] text-[#111] shadow-2xl;

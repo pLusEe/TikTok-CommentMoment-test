@@ -97,7 +97,6 @@ function PhonePrototype() {
   const appRef = useRef(null);
   const videoRefs = useRef([]);
   const bubbleTimer = useRef(null);
-  const longPressTimer = useRef(null);
   const settleTimer = useRef(null);
   const pointerStart = useRef(null);
   const previousIndex = useRef(0);
@@ -111,7 +110,6 @@ function PhonePrototype() {
   const [selectedEmoji, setSelectedEmoji] = useState("😂");
   const [comment, setComment] = useState("就是这一秒笑死我了");
   const [showBubble, setShowBubble] = useState(false);
-  const [showLongPressTip, setShowLongPressTip] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
@@ -148,11 +146,6 @@ function PhonePrototype() {
   };
 
   const closePanels = () => setPanel(null);
-
-  const clearLongPress = () => {
-    window.clearTimeout(longPressTimer.current);
-    longPressTimer.current = null;
-  };
 
   const setPausedState = (paused) => {
     setIsPaused(paused);
@@ -229,17 +222,8 @@ function PhonePrototype() {
       moved: false,
     };
     setIsDragging(false);
-    clearLongPress();
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    longPressTimer.current = window.setTimeout(() => {
-      setPausedState(true);
-      setShowLongPressTip(true);
-      window.setTimeout(() => {
-        setShowLongPressTip(false);
-        setPanel("composer");
-      }, 700);
-    }, 520);
   };
 
   const handlePointerMove = (event) => {
@@ -250,7 +234,6 @@ function PhonePrototype() {
     if (Math.abs(dy) > 10 || Math.abs(dx) > 10) {
       pointerStart.current.moved = true;
       setIsDragging(true);
-      clearLongPress();
       closePanels();
     }
 
@@ -258,7 +241,6 @@ function PhonePrototype() {
   };
 
   const handlePointerUp = (event) => {
-    clearLongPress();
     setIsDragging(false);
 
     if (!pointerStart.current) {
@@ -342,7 +324,6 @@ function PhonePrototype() {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={() => {
-          clearLongPress();
           window.clearTimeout(settleTimer.current);
           pointerStart.current = null;
           setIsDragging(false);
@@ -381,7 +362,6 @@ function PhonePrototype() {
                 isActive={index === activeIndex}
                 onShare={() => {
                   setPanel("share");
-                  setPausedState(true);
                 }}
               />
             </article>
@@ -435,13 +415,6 @@ function PhonePrototype() {
         </div>
 
         <BottomNav />
-
-        {showLongPressTip && (
-          <div className="longpress-tip">
-            <span>添加时刻评论</span>
-            <small>{formatTime(currentTime)}</small>
-          </div>
-        )}
 
         {panel === "share" && (
           <ShareSheet
