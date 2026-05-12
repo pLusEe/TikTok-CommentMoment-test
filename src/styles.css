@@ -412,6 +412,7 @@
     @apply bg-white p-0 shadow-none;
     min-height: 30.4rem;
     overflow: hidden;
+    transition: background 150ms ease;
   }
 
   .rebuilt-share-sheet.moment-enabled {
@@ -441,15 +442,15 @@
   }
 
   .rebuilt-share-body {
-    @apply border-t border-[#e7e7e7] bg-white px-5 pb-5 pt-4;
+    @apply bg-white px-5 pb-5 pt-5;
   }
 
   .rebuilt-message-input {
-    @apply block h-[5.4rem] w-full resize-none border-0 bg-white p-0 text-[1.05rem] font-medium leading-snug text-[#111] outline-none;
+    @apply block h-[5.8rem] w-full resize-none border-0 bg-white p-0 text-[1.05rem] font-medium leading-snug text-[#111] outline-none;
   }
 
   .rebuilt-share-sheet.moment-enabled .rebuilt-message-input {
-    @apply h-[3.5rem];
+    @apply h-[3.85rem];
   }
 
   .rebuilt-message-input::placeholder {
@@ -457,15 +458,15 @@
   }
 
   .rebuilt-emoji-row {
-    @apply mb-2 flex items-center justify-between;
+    @apply mb-4 flex items-center justify-between;
   }
 
   .rebuilt-emoji-row button {
-    @apply h-10 w-10 rounded-full border-0 bg-transparent p-0 text-[1.9rem];
+    @apply h-9 w-9 rounded-full border-0 bg-transparent p-0 text-[1.52rem];
   }
 
   .rebuilt-moment-toggle {
-    @apply flex w-full items-center justify-between border-0 border-y border-[#efefef] bg-white px-0 py-2.5 text-left;
+    @apply flex w-full items-center justify-between border-0 bg-white px-0 py-3 text-left;
   }
 
   .rebuilt-moment-toggle strong {
@@ -509,11 +510,16 @@
   }
 
   .rebuilt-send-button {
-    @apply h-[3.25rem] w-full rounded-full border-0 bg-tiktok-pink text-[1.18rem] font-black text-white;
+    @apply mt-2 h-[3.25rem] w-full rounded-full border-0 bg-tiktok-pink text-[1.18rem] font-black text-white;
+  }
+
+  .rebuilt-share-sheet.scrubbing {
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .rebuilt-share-sheet.scrubbing .rebuilt-share-main {
-    opacity: 0.58;
+    @apply pointer-events-none;
+    opacity: 0.16;
   }
 
   .selected-svg-mode {
@@ -837,11 +843,11 @@
   }
 
   .moment-time-control {
-    @apply mb-2 border-b border-[#efefef] bg-white px-0 pb-2.5 pt-2;
+    @apply mb-3 bg-white px-0 pb-2.5 pt-1;
   }
 
   .moment-time-control.compact {
-    @apply mb-0 bg-white px-3.5 py-3 shadow-2xl;
+    @apply mb-0 bg-white/90 px-3.5 py-3 shadow-2xl backdrop-blur-md;
     border-radius: 20px;
   }
 
@@ -868,28 +874,33 @@
   }
 
   .moment-time-track {
-    @apply relative w-full rounded-full bg-[#d7d7d7];
-    height: 0.15rem;
+    @apply relative w-full rounded-full bg-[#cfcfcf];
+    height: 0.2rem;
   }
 
   .moment-time-fill {
     @apply h-full rounded-full bg-tiktok-pink;
-    box-shadow: 0 0 0.35rem rgba(254, 44, 85, 0.22);
+    box-shadow: 0 0 0.45rem rgba(254, 44, 85, 0.38);
   }
 
   .moment-time-thumb {
     @apply absolute top-1/2 rounded-full bg-white shadow-md;
-    width: 0.82rem;
-    height: 0.82rem;
+    width: 0.9rem;
+    height: 0.9rem;
     border: 0.15rem solid #fe2c55;
     transform: translate(-50%, -50%);
   }
 
   .moment-scrub-mini {
-    @apply pointer-events-none absolute left-4 right-4 z-[2] opacity-0;
+    @apply pointer-events-none absolute left-4 right-4 z-[45] opacity-0;
     bottom: 0.95rem;
     transform: translateY(0.7rem);
     transition: opacity 140ms ease, transform 180ms ease;
+  }
+
+  .rebuilt-share-sheet.scrubbing .moment-scrub-mini {
+    @apply pointer-events-auto opacity-100;
+    transform: translateY(0);
   }
 
   .selected-svg-mode.scrubbing .share-selected-top,
