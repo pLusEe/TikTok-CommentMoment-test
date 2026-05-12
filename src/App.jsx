@@ -173,7 +173,7 @@ function PhonePrototype() {
   }, [activeIndex]);
 
   const showToast = (message) => {
-    setToast(message.includes("Jess") ? "发送给 jiayi" : message);
+    setToast(message.includes("Jess") ? "发送给 jane" : message);
     window.setTimeout(() => setToast(""), 1300);
   };
 
