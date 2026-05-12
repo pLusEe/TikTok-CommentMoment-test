@@ -307,6 +307,70 @@
     @apply opacity-100;
   }
 
+  .app.moment-scrubbing .video-chrome,
+  .app.moment-scrubbing .moment-marker,
+  .app.moment-scrubbing .moment-bubble,
+  .app.moment-scrubbing .play-toggle {
+    @apply pointer-events-none opacity-0;
+  }
+
+  .native-scrub-overlay {
+    @apply pointer-events-none absolute inset-0 z-[44];
+  }
+
+  .native-scrub-time {
+    @apply absolute left-1/2 flex items-baseline font-black text-white;
+    bottom: 6.45rem;
+    gap: 1.05rem;
+    transform: translateX(-50%);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+
+  .native-scrub-time span:first-child {
+    font-size: 2.45rem;
+    letter-spacing: 0;
+  }
+
+  .native-scrub-time b {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1.55rem;
+    font-weight: 800;
+  }
+
+  .native-scrub-time span:last-child {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 2.08rem;
+    letter-spacing: 0;
+  }
+
+  .native-scrub-track {
+    @apply absolute left-[1.05rem] right-[1.05rem];
+    bottom: 3.2rem;
+    height: 1rem;
+  }
+
+  .native-scrub-track::before {
+    @apply absolute left-0 right-0 top-1/2 rounded-full;
+    content: "";
+    height: 0.34rem;
+    background: rgba(255, 255, 255, 0.42);
+    transform: translateY(-50%);
+  }
+
+  .native-scrub-fill {
+    @apply absolute left-0 top-1/2 rounded-full bg-white;
+    height: 0.34rem;
+    transform: translateY(-50%);
+  }
+
+  .native-scrub-thumb {
+    @apply absolute top-1/2 rounded-full bg-white;
+    width: 1.04rem;
+    height: 1.04rem;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.24);
+  }
+
   .moment-marker {
     @apply absolute z-[19] hidden;
     left: var(--x);
@@ -425,7 +489,7 @@
 
   .rebuilt-share-top {
     @apply relative overflow-hidden bg-[#f8f8f8];
-    height: 12.05rem;
+    aspect-ratio: 1022 / 415;
     border-radius: 18px 18px 0 0;
   }
 
@@ -515,14 +579,11 @@
 
   .rebuilt-share-sheet.scrubbing {
     background: transparent;
+    box-shadow: none;
   }
 
-  .rebuilt-share-sheet.scrubbing .rebuilt-share-top,
-  .rebuilt-share-sheet.scrubbing .rebuilt-message-input,
-  .rebuilt-share-sheet.scrubbing .rebuilt-emoji-row,
-  .rebuilt-share-sheet.scrubbing .rebuilt-moment-toggle,
-  .rebuilt-share-sheet.scrubbing .rebuilt-send-button {
-    @apply pointer-events-none opacity-0;
+  .rebuilt-share-sheet.scrubbing .rebuilt-share-main {
+    @apply opacity-0;
   }
 
   .selected-svg-mode {
@@ -896,8 +957,7 @@
   }
 
   .rebuilt-share-sheet.scrubbing .moment-time-control {
-    @apply bg-transparent;
-    opacity: 1;
+    opacity: 0;
   }
 
   .selected-svg-mode.scrubbing .share-selected-top,

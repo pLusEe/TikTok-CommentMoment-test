@@ -88,6 +88,13 @@ function formatTime(seconds) {
   return `0:${String(safe).padStart(2, "0")}`;
 }
 
+function formatScrubTime(seconds) {
+  const safe = Math.max(0, Math.round(seconds || 0));
+  const minutes = Math.floor(safe / 60);
+  const secs = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
 export default function App() {
   return (
     <main className="stage">
@@ -134,6 +141,7 @@ function PhonePrototype() {
   const duration = Number.isFinite(activeVideo?.duration) && activeVideo.duration > 0 ? activeVideo.duration : 20;
   const currentTime = progress * duration;
   const markerX = moment.exists && moment.videoIndex === activeIndex ? `${Math.max(2, Math.min(98, (moment.time / duration) * 100))}%` : "35%";
+  const nativeScrubPercent = duration > 0 ? Math.max(0, Math.min(100, (draftMomentTime / duration) * 100)) : 0;
   const people = useMemo(() => PEOPLE, []);
   const renderSlots = useMemo(() => {
     const total = FEED_ITEMS.length;
@@ -389,7 +397,7 @@ function PhonePrototype() {
     <section className="phone" aria-label="移动端抖音原型">
       <div
         ref={appRef}
-        className={`app ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""}`}
+        className={`app ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -453,8 +461,22 @@ function PhonePrototype() {
 
         <div className={`play-toggle ${isPaused ? "visible" : ""}`} aria-hidden="true" />
 
+        {isMomentScrubbing && (
+          <div className="native-scrub-overlay" aria-hidden="true">
+            <div className="native-scrub-time">
+              <span>{formatScrubTime(draftMomentTime)}</span>
+              <b>/</b>
+              <span>{formatScrubTime(duration)}</span>
+            </div>
+            <div className="native-scrub-track">
+              <div className="native-scrub-fill" style={{ width: `${nativeScrubPercent}%` }} />
+              <span className="native-scrub-thumb" style={{ left: `${nativeScrubPercent}%` }} />
+            </div>
+          </div>
+        )}
+
         <div
-          className={`progress-wrap ${isDragging || isSettling ? "hidden-while-dragging" : ""}`}
+          className={`progress-wrap ${isDragging || isSettling || isMomentScrubbing ? "hidden-while-dragging" : ""}`}
           onPointerDown={(event) => {
             event.stopPropagation();
             event.currentTarget.setPointerCapture(event.pointerId);
