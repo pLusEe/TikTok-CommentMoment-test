@@ -73,11 +73,12 @@ const FEED_ITEMS = [
 
 const EMOJIS = ["😂", "👍", "😍", "😮", "🥹", "🙏"];
 const PEOPLE = [
-  { avatar: "J", name: "Jess", selected: true },
+  { avatar: "J", name: "jiayiwang57", suffix: "8", online: true },
   { avatar: "S", name: "Susy" },
-  { avatar: "D", name: "Dean" },
+  { avatar: "D", name: "Dean Baas", photo: posterDonkey },
   { avatar: "A", name: "aan600" },
-  { avatar: "+", name: "邀请" },
+  { avatar: "S", name: "Samigurl27", photo: feedCreator },
+  { avatar: "+", name: "邀请好友聊", add: true },
 ];
 
 function formatTime(seconds) {
@@ -524,46 +525,81 @@ function ActionButton({ icon, label, value, onClick }) {
   );
 }
 
-function ShareSheet({ people, time, onClose, onComposer }) {
-  return (
-    <section className="sheet" aria-label="发送给">
-      <div className="sheet-handle" />
-      <div className="sheet-head">
-        <button className="sheet-search" aria-label="搜索">⌕</button>
-        <strong>发送给</strong>
-        <button className="sheet-close" aria-label="关闭" onClick={onClose}>×</button>
-      </div>
+function ShareSheet({ people, onClose }) {
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const quickEmojis = ["🥰", "👍", "😂", "😎", "🥺", "🙏"];
+  const selectedName = selectedPerson?.name || people[0]?.name || "";
 
-      <button className="moment-card" type="button" onClick={onComposer}>
-        <span className="moment-card-icon">💬</span>
-        <span>
-          <strong>添加时刻评论</strong>
-          <small>把评论留在这一秒 <b>{time}</b></small>
-        </span>
-      </button>
+  return (
+    <section className={`sheet ${selectedPerson ? "selected-mode" : ""}`} aria-label="发送给">
+      <div className="sheet-head">
+        <button className="sheet-search" aria-label="搜索" type="button" />
+        <strong>发送给</strong>
+        <button className="sheet-close" aria-label="关闭" type="button" onClick={onClose}>×</button>
+      </div>
 
       <div className="people-row">
         {people.map((person) => (
-          <button key={person.name} className={`person ${person.selected ? "selected" : ""} ${person.avatar === "+" ? "add" : ""}`} type="button">
-            <span>{person.avatar}</span>
-            <small>{person.name}</small>
+          <button
+            key={person.name}
+            className={`person ${selectedName === person.name ? "selected" : ""} ${person.add ? "add" : ""}`}
+            type="button"
+            onClick={() => {
+              if (!person.add) setSelectedPerson(person);
+            }}
+          >
+            <span className="person-avatar" style={person.photo ? { backgroundImage: `url(${person.photo})` } : undefined}>
+              {!person.photo && person.avatar}
+            </span>
+            <small>{person.name}{person.suffix ? <b>{person.suffix}</b> : null}</small>
           </button>
         ))}
       </div>
 
-      <div className="share-actions">
-        {[
-          ["↗", "转发"],
-          ["✓", "短信"],
-          ["🔗", "复制链接"],
-          ["✈", "Telegram"],
-        ].map(([icon, label]) => (
-          <button key={label} type="button">
-            <span>{icon}</span>
-            <small>{label}</small>
-          </button>
-        ))}
-      </div>
+      {selectedPerson ? (
+        <div className="share-compose">
+          <textarea placeholder="有什么想和朋友说的..." />
+          <div className="share-emoji-row">
+            {quickEmojis.map((emoji) => (
+              <button key={emoji} type="button">{emoji}</button>
+            ))}
+          </div>
+          <button className="native-send-button" type="button">发送</button>
+        </div>
+      ) : (
+        <>
+          <div className="share-actions primary-actions">
+            {[
+              ["↪", "转发", "yellow"],
+              ["●", "短信", "green"],
+              ["🔗", "复制链接", "blue"],
+              ["✈", "Telegram", "cyan"],
+              ["◎", "Instagram\nDirect", "rainbow"],
+              ["✚", "WA\nBusiness", "whatsapp"],
+            ].map(([icon, label, tone]) => (
+              <button key={label} className={`share-action ${tone}`} type="button">
+                <span>{icon}</span>
+                <small>{label}</small>
+              </button>
+            ))}
+          </div>
+          <div className="share-actions secondary-actions">
+            {[
+              ["⚑", "举报"],
+              ["💔", "不感兴趣"],
+              ["◐", "合拍"],
+              ["▣", "创作贴纸"],
+              ["↓", "下载"],
+              ["⊕", "添加到限时\n动态"],
+            ].map(([icon, label]) => (
+              <button key={label} className="share-action muted" type="button">
+                <span>{icon}</span>
+                <small>{label}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }

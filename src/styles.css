@@ -368,50 +368,68 @@
   .sheet,
   .composer {
     @apply absolute bottom-0 left-0 right-0 z-40 bg-[#f7f7f7] text-[#111] shadow-2xl;
-    border-radius: 22px 22px 0 0;
+    border-radius: 18px 18px 0 0;
     animation: sheetUp 220ms ease both;
   }
 
   .sheet {
-    min-height: 39rem;
+    height: 28rem;
+    overflow: hidden;
   }
 
-  .sheet-handle {
-    @apply mx-auto mt-2 rounded-full bg-[#d5d5d5];
-    width: 2.25rem;
-    height: 0.24rem;
+  .sheet.selected-mode {
+    height: 29.4rem;
   }
 
   .sheet-head {
-    @apply grid h-14 items-center text-center text-lg;
-    grid-template-columns: 3rem 1fr 3rem;
+    @apply grid h-[3.95rem] items-center px-4 text-center;
+    grid-template-columns: 3.5rem 1fr 3.5rem;
   }
 
   .sheet-head button {
-    @apply border-0 bg-transparent text-3xl;
+    @apply border-0 bg-transparent p-0 text-black;
   }
 
   .sheet-search {
-    transform: rotate(-20deg);
+    position: relative;
+    width: 2.15rem;
+    height: 2.15rem;
   }
 
-  .moment-card {
-    @apply mx-3 mb-3 mt-1 flex w-[calc(100%-1.4rem)] items-center gap-3 rounded-2xl border-0 bg-gradient-to-br from-[#111] to-[#2c2c35] p-3 text-left text-white;
+  .sheet-search::before {
+    content: "";
+    position: absolute;
+    left: 0.2rem;
+    top: 0.12rem;
+    width: 1.34rem;
+    height: 1.34rem;
+    border: 0.22rem solid #050505;
+    border-radius: 999px;
   }
 
-  .moment-card-icon {
-    @apply grid place-items-center rounded-full bg-tiktok-pink text-xl;
-    width: 2.45rem;
-    height: 2.45rem;
+  .sheet-search::after {
+    content: "";
+    position: absolute;
+    left: 1.5rem;
+    top: 1.55rem;
+    width: 0.9rem;
+    height: 0.22rem;
+    border-radius: 999px;
+    background: #050505;
+    transform: rotate(45deg);
   }
 
-  .moment-card small {
-    @apply mt-0.5 block text-xs text-white/65;
+  .sheet-head strong {
+    @apply text-[1.4rem] font-black tracking-normal text-black;
+  }
+
+  .sheet-close {
+    @apply justify-self-end text-[2.5rem] font-light leading-none;
   }
 
   .people-row,
   .share-actions {
-    @apply flex gap-3 overflow-x-auto px-3 pb-4 pt-1;
+    @apply flex overflow-x-auto px-4;
     scrollbar-width: none;
   }
 
@@ -420,38 +438,159 @@
     display: none;
   }
 
-  .person,
-  .share-actions button {
+  .people-row {
+    @apply gap-4 pb-4;
+  }
+
+  .person {
     @apply shrink-0 border-0 bg-transparent text-center text-[#111];
-    flex-basis: 4.3rem;
+    width: 4.35rem;
   }
 
-  .person span,
-  .share-actions span {
-    @apply mx-auto mb-1 grid place-items-center rounded-full bg-[#e8e8e8] text-xl font-extrabold;
-    width: 3.15rem;
-    height: 3.15rem;
+  .person-avatar {
+    @apply relative mx-auto mb-2 grid place-items-center rounded-full bg-[#dddddd] bg-cover bg-center text-[2.1rem] font-black text-white;
+    width: 3.55rem;
+    height: 3.55rem;
   }
 
-  .person.selected span {
-    @apply bg-[#2d6f1f] text-white outline outline-4 outline-tiktok-pink;
+  .person-avatar::before {
+    content: "";
+    display: none;
+    position: absolute;
+    inset: 0.72rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
   }
 
-  .person.add span {
-    @apply bg-[#8f46f5] text-white;
+  .person:not(.add):not(.selected) .person-avatar:not([style])::before {
+    display: block;
   }
 
-  .person small,
-  .share-actions small {
-    @apply block whitespace-nowrap text-xs text-[#222];
+  .person:first-child .person-avatar {
+    @apply bg-[#2f761f];
+  }
+
+  .person:first-child:not(.selected) .person-avatar::after {
+    content: "";
+    position: absolute;
+    right: -0.1rem;
+    bottom: -0.05rem;
+    width: 1.14rem;
+    height: 1.14rem;
+    border: 0.18rem solid #f7f7f7;
+    border-radius: 999px;
+    background: #22d55b;
+  }
+
+  .person.selected .person-avatar {
+    @apply bg-[#b5c9ac] text-white;
+  }
+
+  .person.selected .person-avatar::after {
+    content: "✓";
+    position: absolute;
+    right: -0.1rem;
+    bottom: -0.08rem;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 0.18rem solid #f7f7f7;
+    border-radius: 999px;
+    background: #fe2c55;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .person.add .person-avatar {
+    @apply bg-[#9342f4] text-[1.9rem];
+  }
+
+  .sheet.selected-mode .person.add .person-avatar {
+    @apply bg-[#d5b2fa];
+  }
+
+  .person small {
+    @apply block text-[0.86rem] font-medium leading-tight text-[#171717];
+  }
+
+  .person small b {
+    @apply block font-medium;
   }
 
   .share-actions {
-    @apply border-t border-[#e5e5e5] pt-4;
+    @apply gap-5 border-t border-[#e7e7e7] py-5;
   }
 
-  .share-actions span {
-    @apply bg-white;
+  .share-actions button {
+    @apply shrink-0 border-0 bg-transparent p-0 text-center text-[#111];
+    width: 4.15rem;
+  }
+
+  .share-action span {
+    @apply mx-auto mb-2 grid place-items-center rounded-full text-[1.65rem] font-black text-white;
+    width: 3.55rem;
+    height: 3.55rem;
+  }
+
+  .share-action small {
+    @apply block whitespace-pre-line text-[0.82rem] font-medium leading-tight text-[#222];
+  }
+
+  .share-action.yellow span {
+    @apply bg-[#ffd21f];
+  }
+
+  .share-action.green span,
+  .share-action.whatsapp span {
+    @apply bg-[#20d65b];
+  }
+
+  .share-action.blue span {
+    @apply bg-[#2d76f0];
+  }
+
+  .share-action.cyan span {
+    @apply bg-[#28aee7];
+  }
+
+  .share-action.rainbow span {
+    background: linear-gradient(135deg, #feda58, #fb2d72 48%, #6d3bff);
+  }
+
+  .secondary-actions {
+    @apply pt-4;
+  }
+
+  .share-action.muted span {
+    @apply bg-[#ececec] text-[#4a4a4a];
+  }
+
+  .share-compose {
+    @apply border-t border-[#e7e7e7] bg-white px-5 pb-5 pt-5;
+    min-height: 19.6rem;
+  }
+
+  .share-compose textarea {
+    @apply block h-[7.2rem] w-full resize-none border-0 bg-white p-0 text-[1.05rem] text-[#111] outline-none;
+  }
+
+  .share-compose textarea::placeholder {
+    @apply text-[#b8b8b8];
+  }
+
+  .share-emoji-row {
+    @apply mb-5 flex items-center justify-between;
+  }
+
+  .share-emoji-row button {
+    @apply border-0 bg-transparent p-0 text-[1.9rem];
+  }
+
+  .native-send-button {
+    @apply h-[3.25rem] w-full rounded-full border-0 bg-tiktok-pink text-[1.18rem] font-black text-white;
   }
 
   .composer {
