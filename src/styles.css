@@ -465,40 +465,47 @@
   }
 
   .rebuilt-moment-toggle {
-    @apply flex w-full items-center gap-2.5 border-0 border-y border-[#efefef] bg-white px-0 py-2.5 text-left;
+    @apply flex w-full items-center justify-between border-0 border-y border-[#efefef] bg-white px-0 py-2.5 text-left;
   }
 
-  .rebuilt-check {
-    @apply relative grid shrink-0 place-items-center rounded-full bg-white;
-    width: 1.06rem;
-    height: 1.06rem;
-    border: 0.1rem solid #cfcfcf;
+  .rebuilt-moment-toggle strong {
+    @apply text-[0.95rem] font-black text-[#111];
   }
 
-  .rebuilt-moment-toggle.enabled .rebuilt-check {
-    border-color: #fe2c55;
-    background: #fe2c55;
+  .rebuilt-moment-right {
+    @apply flex items-center gap-2.5;
   }
 
-  .rebuilt-moment-toggle.enabled .rebuilt-check::after {
+  .rebuilt-moment-right small {
+    @apply text-[0.86rem] font-medium text-[#5d5d5d];
+  }
+
+  .rebuilt-switch {
+    @apply relative rounded-full bg-[#a0a0a0];
+    width: 2.25rem;
+    height: 1.28rem;
+    transition: background 160ms ease;
+  }
+
+  .rebuilt-switch::after {
     content: "";
-    width: 0.48rem;
-    height: 0.28rem;
-    border-bottom: 0.11rem solid white;
-    border-left: 0.11rem solid white;
-    transform: rotate(-45deg) translateY(-0.05rem);
+    position: absolute;
+    left: 0.14rem;
+    top: 0.14rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: white;
+    box-shadow: 0 0.08rem 0.2rem rgba(0, 0, 0, 0.2);
+    transition: transform 160ms ease;
   }
 
-  .rebuilt-moment-copy {
-    @apply grid flex-1 gap-0.5;
+  .rebuilt-moment-toggle.enabled .rebuilt-switch {
+    background: #111;
   }
 
-  .rebuilt-moment-copy strong {
-    @apply text-[0.9rem] font-black text-[#111];
-  }
-
-  .rebuilt-moment-copy small {
-    @apply text-[0.72rem] font-medium text-[#8b8b8b];
+  .rebuilt-moment-toggle.enabled .rebuilt-switch::after {
+    transform: translateX(0.96rem);
   }
 
   .rebuilt-send-button {
@@ -506,8 +513,7 @@
   }
 
   .rebuilt-share-sheet.scrubbing .rebuilt-share-main {
-    @apply pointer-events-none opacity-0;
-    transform: translateY(5rem);
+    opacity: 0.58;
   }
 
   .selected-svg-mode {
@@ -831,7 +837,7 @@
   }
 
   .moment-time-control {
-    @apply mb-2 border-b border-[#efefef] bg-white px-0 pb-2 pt-2;
+    @apply mb-2 border-b border-[#efefef] bg-white px-0 pb-2.5 pt-2;
   }
 
   .moment-time-control.compact {
@@ -857,24 +863,25 @@
   }
 
   .moment-time-slider {
-    @apply relative flex h-5 items-center;
+    @apply relative flex h-6 items-center;
     touch-action: none;
   }
 
   .moment-time-track {
     @apply relative w-full rounded-full bg-[#d7d7d7];
-    height: 0.14rem;
+    height: 0.15rem;
   }
 
   .moment-time-fill {
     @apply h-full rounded-full bg-tiktok-pink;
+    box-shadow: 0 0 0.35rem rgba(254, 44, 85, 0.22);
   }
 
   .moment-time-thumb {
     @apply absolute top-1/2 rounded-full bg-white shadow-md;
-    width: 0.72rem;
-    height: 0.72rem;
-    border: 0.14rem solid #fe2c55;
+    width: 0.82rem;
+    height: 0.82rem;
+    border: 0.15rem solid #fe2c55;
     transform: translate(-50%, -50%);
   }
 

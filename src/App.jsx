@@ -676,10 +676,10 @@ function ShareSheet({
           </div>
 
           <button className={`rebuilt-moment-toggle ${isMomentEnabled ? "enabled" : ""}`} type="button" onClick={onToggleMoment}>
-            <span className="rebuilt-check" />
-            <span className="rebuilt-moment-copy">
-              <strong>时刻分享</strong>
-              <small>{isMomentEnabled ? `留在 ${formatTime(draftMomentTime)}` : "把留言留在视频里的某一秒"}</small>
+            <strong>时刻分享</strong>
+            <span className="rebuilt-moment-right">
+              <small>评论在 {formatTime(draftMomentTime)}</small>
+              <span className="rebuilt-switch" aria-hidden="true" />
             </span>
           </button>
 
@@ -727,11 +727,13 @@ function MomentTimeControl({ compact = false, duration, time, onStep, onScrubSta
 
   return (
     <div className={`moment-time-control ${compact ? "compact" : ""}`}>
-      <div className="moment-time-row">
-        <button type="button" onClick={() => onStep(-1)}>-1s</button>
-        <strong>留在 {formatTime(time)}</strong>
-        <button type="button" onClick={() => onStep(1)}>+1s</button>
-      </div>
+      {compact && (
+        <div className="moment-time-row">
+          <button type="button" onClick={() => onStep(-1)}>-1s</button>
+          <strong>评论在 {formatTime(time)}</strong>
+          <button type="button" onClick={() => onStep(1)}>+1s</button>
+        </div>
+      )}
       <div
         className="moment-time-slider"
         role="slider"
