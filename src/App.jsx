@@ -6,6 +6,9 @@ const videoThird = new URL("../assets/video-third.mp4", import.meta.url).href;
 const feedChicks = new URL("../assets/feed-chicks.jpg", import.meta.url).href;
 const feedCreator = new URL("../assets/feed-creator.jpg", import.meta.url).href;
 const posterDonkey = new URL("../assets/poster-donkey.jpg", import.meta.url).href;
+const posterChicksFrame = new URL("../assets/poster-chicks-frame.jpg", import.meta.url).href;
+const posterCreatorFrame = new URL("../assets/poster-creator-frame.jpg", import.meta.url).href;
+const posterThirdFrame = new URL("../assets/poster-third-frame.jpg", import.meta.url).href;
 
 const statusBar = new URL("../assets/ui-kit/Status Bar.svg", import.meta.url).href;
 const likeIcon = new URL("../assets/ui-kit/Like.svg", import.meta.url).href;
@@ -23,8 +26,8 @@ const liveIcon = new URL("../assets/ui-kit/live.png", import.meta.url).href;
 const FEED_ITEMS = [
   {
     src: videoChicks,
-    poster: feedChicks,
-    preview: feedChicks,
+    poster: posterChicksFrame,
+    preview: posterChicksFrame,
     author: "Aaron Videos",
     handle: "@aarons.videoss",
     caption: "在纽约偶遇小鸡 🐥 #nyc #newyorkcity #babychicks ⋯ 查看原内容",
@@ -38,8 +41,8 @@ const FEED_ITEMS = [
   },
   {
     src: videoCreator,
-    poster: posterDonkey,
-    preview: posterDonkey,
+    poster: posterCreatorFrame,
+    preview: posterCreatorFrame,
     author: "Sophia",
     handle: "@sophia.daily",
     caption: "可爱的小毛驴 #donkey ⋯ 查看原内容",
@@ -53,8 +56,8 @@ const FEED_ITEMS = [
   },
   {
     src: videoThird,
-    poster: feedCreator,
-    preview: feedCreator,
+    poster: posterThirdFrame,
+    preview: posterThirdFrame,
     author: "Mika Lens",
     handle: "@mika.lens",
     caption: "今天这一幕太像电影了 #citywalk #dailyvlog ⋯ 查看原内容",
