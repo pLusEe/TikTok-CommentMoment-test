@@ -21,8 +21,9 @@ const homeNav = new URL("../assets/ui-kit/Frame 39.svg", import.meta.url).href;
 const inboxNav = new URL("../assets/ui-kit/Frame 40.svg", import.meta.url).href;
 const profileNav = new URL("../assets/ui-kit/Frame 41.svg", import.meta.url).href;
 const searchIcon = new URL("../assets/ui-kit/search.png", import.meta.url).href;
+const searchBlackIcon = new URL("../assets/ui-kit/search-black.svg", import.meta.url).href;
 const liveIcon = new URL("../assets/ui-kit/live.png", import.meta.url).href;
-const janeAvatar = new URL("../assets/ui-kit/Frame 36.svg", import.meta.url).href;
+const janeAvatar = new URL("../assets/ui-kit/jane.png", import.meta.url).href;
 const shareSheetSvg = new URL("../assets/ui-kit/发送给.svg", import.meta.url).href;
 const selectedShareSheetSvg = new URL("../assets/ui-kit/发送给-选中头像.svg", import.meta.url).href;
 
@@ -136,6 +137,7 @@ function PhonePrototype() {
   const previousIndex = useRef(0);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [appView, setAppView] = useState("feed");
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [panel, setPanel] = useState(null);
@@ -175,6 +177,13 @@ function PhonePrototype() {
   const showToast = (message) => {
     setToast(message.includes("Jess") ? "发送给 jane" : message);
     window.setTimeout(() => setToast(""), 1300);
+  };
+
+  const navigateApp = (nextView) => {
+    setAppView(nextView);
+    setPanel(null);
+    setShowBubble(false);
+    setIsMomentScrubbing(false);
   };
 
   const closePanels = () => {
@@ -387,13 +396,13 @@ function PhonePrototype() {
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
       if (!video) return;
-      if (index === activeIndex && !isPaused) {
+      if (appView === "feed" && index === activeIndex && !isPaused) {
         video.play().catch(() => {});
       } else {
         video.pause();
       }
     });
-  }, [activeIndex, isPaused]);
+  }, [activeIndex, appView, isPaused]);
 
   useEffect(() => {
     if (previousIndex.current !== activeIndex) {
@@ -424,19 +433,23 @@ function PhonePrototype() {
     <section className="phone" aria-label="移动端抖音原型">
       <div
         ref={appRef}
-        className={`app ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""}`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={() => {
+        className={`app ${appView === "inbox" ? "inbox-app" : ""} ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""}`}
+        onPointerDown={appView === "feed" ? handlePointerDown : undefined}
+        onPointerMove={appView === "feed" ? handlePointerMove : undefined}
+        onPointerUp={appView === "feed" ? handlePointerUp : undefined}
+        onPointerCancel={appView === "feed" ? () => {
           window.clearTimeout(settleTimer.current);
           pointerStart.current = null;
           setIsDragging(false);
           setIsSettling(false);
           setIsResettingFeed(false);
           setDragOffset(0);
-        }}
+        } : undefined}
       >
+        {appView === "inbox" ? (
+          <InboxPage onNavigate={navigateApp} />
+        ) : (
+        <>
         <div
           className="feed-track"
           style={{ transform: `translate3d(0, calc(-100% + ${dragOffset}px), 0)` }}
@@ -538,7 +551,7 @@ function PhonePrototype() {
           <button className="progress-thumb" style={{ left: `${progress * 100}%` }} aria-label="视频进度" />
         </div>
 
-        <BottomNav />
+        <AppBottomNav active="home" onNavigate={navigateApp} />
 
         {panel === "share" && (
           <ShareSheet
@@ -577,6 +590,8 @@ function PhonePrototype() {
             <span>{toast}</span>
             <span className="toast-arrow" aria-hidden="true" />
           </div>
+        )}
+        </>
         )}
       </div>
     </section>
@@ -651,6 +666,84 @@ function BottomNav() {
         <span className="nav-label">主页</span>
       </button>
     </nav>
+  );
+}
+
+function AppBottomNav({ active = "home", variant = "dark", onNavigate = () => {} }) {
+  return (
+    <nav className={`bottom-nav ${variant === "light" ? "light" : ""}`} aria-label="底部导航">
+      <button className={`nav-tab ${active === "home" ? "active" : ""}`} type="button" aria-label="首页" onClick={() => onNavigate("feed")}>
+        <span className="nav-icon-frame"><img src={homeNav} alt="" /></span>
+        <span className="nav-label">首页</span>
+      </button>
+      <button className={`nav-tab ${active === "friends" ? "active" : ""}`} type="button" aria-label="好友">
+        <span className="nav-icon-frame"><img src={friendsNav} alt="" /></span>
+        <span className="nav-label">好友</span>
+      </button>
+      <button className="nav-tab publish-tab" type="button" aria-label="发布">
+        <img src={plusNav} alt="" />
+      </button>
+      <button className={`nav-tab ${active === "inbox" ? "active" : ""}`} type="button" aria-label="收件箱" onClick={() => onNavigate("inbox")}>
+        <span className="nav-icon-frame"><img src={inboxNav} alt="" /></span>
+        <span className="nav-label">收件箱</span>
+      </button>
+      <button className={`nav-tab ${active === "profile" ? "active" : ""}`} type="button" aria-label="主页">
+        <span className="nav-icon-frame"><img src={profileNav} alt="" /></span>
+        <span className="nav-label">主页</span>
+      </button>
+    </nav>
+  );
+}
+
+function InboxPage({ onNavigate }) {
+  return (
+    <section className="inbox-page" aria-label="收件箱">
+      <img className="inbox-status-bar" src={statusBar} alt="" />
+
+      <header className="inbox-header">
+        <div className="inbox-title-group">
+          <h1>收件箱</h1>
+          <span className="inbox-presence"><i /><b /></span>
+        </div>
+        <button className="inbox-search" type="button" aria-label="搜索">
+          <img src={searchBlackIcon} alt="" />
+        </button>
+      </header>
+
+      <section className="inbox-stories" aria-label="快捷入口">
+        <div className="story-card create">
+          <span className="story-tip">想来点什么?</span>
+          <span className="story-avatar letter">J<i /></span>
+          <strong>创建</strong>
+        </div>
+        <div className="story-card">
+          <span className="story-avatar photo"><img src={janeAvatar} alt="" /><i /></span>
+          <strong>jane</strong>
+        </div>
+      </section>
+
+      <section className="inbox-list" aria-label="消息列表">
+        <InboxRow avatar={janeAvatar} title="jane" subtitle="[分享时刻评论]" unread />
+      </section>
+      <AppBottomNav active="inbox" variant="light" onNavigate={onNavigate} />
+    </section>
+  );
+}
+
+function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot = false, right }) {
+  return (
+    <article className="inbox-row">
+      <span className={`inbox-row-avatar ${iconClass || ""}`}>
+        {avatar ? <img src={avatar} alt="" /> : null}
+      </span>
+      <div className="inbox-row-text">
+        <strong>{title}</strong>
+        <p>{subtitle}</p>
+      </div>
+      {unread && <span className="inbox-unread" />}
+      {redDot && <span className="inbox-red-dot" />}
+      {right && <span className="inbox-row-right">{right}</span>}
+    </article>
   );
 }
 
