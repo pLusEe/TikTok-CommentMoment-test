@@ -95,6 +95,7 @@ function PhonePrototype() {
   const videoRefs = useRef([]);
   const bubbleTimer = useRef(null);
   const longPressTimer = useRef(null);
+  const settleTimer = useRef(null);
   const pointerStart = useRef(null);
   const previousIndex = useRef(0);
 
@@ -110,6 +111,8 @@ function PhonePrototype() {
   const [showLongPressTip, setShowLongPressTip] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
+  const [isResettingFeed, setIsResettingFeed] = useState(false);
   const [moment, setMoment] = useState({
     exists: false,
     videoIndex: 0,
@@ -212,6 +215,7 @@ function PhonePrototype() {
   };
 
   const handlePointerDown = (event) => {
+    if (isSettling) return;
     if (event.target.closest("button, textarea, .sheet, .composer, .progress-wrap")) return;
 
     pointerStart.current = {
@@ -274,7 +278,17 @@ function PhonePrototype() {
       setPausedState(!isPaused);
       setDragOffset(0);
     } else if (shouldFlip) {
-      goToVideo(nextIndex);
+      setIsSettling(true);
+      setDragOffset(dy < 0 ? -height : height);
+      window.clearTimeout(settleTimer.current);
+      settleTimer.current = window.setTimeout(() => {
+        setIsResettingFeed(true);
+        goToVideo(nextIndex);
+        window.requestAnimationFrame(() => {
+          setIsResettingFeed(false);
+          setIsSettling(false);
+        });
+      }, 260);
     } else {
       setDragOffset(0);
     }
@@ -320,14 +334,17 @@ function PhonePrototype() {
     <section className="phone" aria-label="移动端抖音原型">
       <div
         ref={appRef}
-        className={`app ${isDragging ? "dragging" : ""}`}
+        className={`app ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={() => {
           clearLongPress();
+          window.clearTimeout(settleTimer.current);
           pointerStart.current = null;
           setIsDragging(false);
+          setIsSettling(false);
+          setIsResettingFeed(false);
           setDragOffset(0);
         }}
       >
@@ -386,7 +403,7 @@ function PhonePrototype() {
         <div className={`play-toggle ${isPaused ? "visible" : ""}`} aria-hidden="true" />
 
         <div
-          className={`progress-wrap ${isDragging ? "hidden-while-dragging" : ""}`}
+          className={`progress-wrap ${isDragging || isSettling ? "hidden-while-dragging" : ""}`}
           onPointerDown={(event) => {
             event.stopPropagation();
             event.currentTarget.setPointerCapture(event.pointerId);

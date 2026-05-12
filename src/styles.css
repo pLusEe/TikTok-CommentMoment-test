@@ -49,7 +49,8 @@
     will-change: transform;
   }
 
-  .app.dragging .feed-track {
+  .app.dragging .feed-track,
+  .app.resetting .feed-track {
     transition: none;
   }
 
