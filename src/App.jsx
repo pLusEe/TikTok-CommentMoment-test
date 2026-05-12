@@ -117,8 +117,7 @@ function PhonePrototype() {
   const [panel, setPanel] = useState(null);
   const [friendView, setFriendView] = useState(false);
   const [toast, setToast] = useState("");
-  const [selectedEmoji, setSelectedEmoji] = useState("😂");
-  const [comment, setComment] = useState("就是这一秒笑死我了");
+  const [comment, setComment] = useState("");
   const [showBubble, setShowBubble] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -131,8 +130,7 @@ function PhonePrototype() {
     exists: false,
     videoIndex: 0,
     time: 7,
-    emoji: "😂",
-    text: "就是这一秒笑死我了",
+    text: "",
     seenOnce: false,
   });
 
@@ -155,7 +153,7 @@ function PhonePrototype() {
   }, [activeIndex]);
 
   const showToast = (message) => {
-    setToast(message);
+    setToast(message.includes("Jess") ? "发送给 jiayi" : message);
     window.setTimeout(() => setToast(""), 1300);
   };
 
@@ -263,8 +261,7 @@ function PhonePrototype() {
       exists: true,
       videoIndex: activeIndex,
       time: Math.round(timeOverride),
-      emoji: selectedEmoji,
-      text: comment.trim() || "就是这一秒笑死我了",
+      text: comment.trim(),
       seenOnce: false,
     };
     setMoment(nextMoment);
@@ -446,16 +443,16 @@ function PhonePrototype() {
 
         <TopChrome />
 
-        <div className={`moment-marker ${moment.exists && moment.videoIndex === activeIndex ? "show" : ""}`} style={{ "--x": markerX }}>
-          <div className="marker-line" />
+        <div className={`moment-marker ${moment.exists && moment.videoIndex === activeIndex ? "show" : ""} ${moment.seenOnce ? "collapsed" : ""}`} style={{ "--x": markerX }}>
           <button className="marker-avatar" type="button" onClick={forceBubble}>J</button>
+          <button className="marker-line" type="button" aria-label="查看时刻评论" onClick={forceBubble} />
         </div>
 
-        <div className={`moment-bubble ${showBubble ? "" : "hidden"}`}>
+        <div className={`moment-bubble ${showBubble ? "" : "hidden"} ${moment.text ? "" : "textless"} ${moment.text.length > 18 ? "long" : ""}`}>
           <div className="bubble-avatar">J</div>
           <div>
-            <div className="bubble-meta">Jess 在 {formatTime(moment.time)} 留下评论</div>
-            <div className="bubble-text"><span>{moment.emoji}</span> <span>{moment.text}</span></div>
+            <div className="bubble-meta">jiayi 在 {formatTime(moment.time)} 标记时刻</div>
+            {moment.text && <div className="bubble-text">{moment.text}</div>}
           </div>
         </div>
 
@@ -511,7 +508,6 @@ function PhonePrototype() {
             people={people}
             comment={comment}
             setComment={setComment}
-            setSelectedEmoji={setSelectedEmoji}
             duration={duration}
             draftMomentTime={draftMomentTime}
             isMomentEnabled={isMomentEnabled}
@@ -531,8 +527,6 @@ function PhonePrototype() {
           <ComposerSheet
             activeItem={activeItem}
             time={formatTime(currentTime)}
-            selectedEmoji={selectedEmoji}
-            setSelectedEmoji={setSelectedEmoji}
             comment={comment}
             setComment={setComment}
             onBack={() => setPanel("share")}
@@ -540,7 +534,13 @@ function PhonePrototype() {
           />
         )}
 
-        {toast && <div className="toast">{toast}</div>}
+        {toast && (
+          <div className="toast" role="status">
+            <span className="toast-check" aria-hidden="true" />
+            <span>{toast}</span>
+            <span className="toast-arrow" aria-hidden="true" />
+          </div>
+        )}
       </div>
     </section>
   );
@@ -630,7 +630,6 @@ function ShareSheet({
   people,
   comment,
   setComment,
-  setSelectedEmoji,
   duration,
   draftMomentTime,
   isMomentEnabled,
@@ -689,7 +688,6 @@ function ShareSheet({
                 aria-label={`输入 ${emoji}`}
                 onClick={() => {
                   setComment((value) => `${value}${emoji}`);
-                  setSelectedEmoji(emoji);
                 }}
               >
                 {emoji}
@@ -772,7 +770,7 @@ function MomentTimeControl({ compact = false, duration, time, onStep, onScrubSta
   );
 }
 
-function ComposerSheet({ activeItem, time, selectedEmoji, setSelectedEmoji, comment, setComment, onBack, onSend }) {
+function ComposerSheet({ activeItem, time, comment, setComment, onBack, onSend }) {
   return (
     <section className="composer" aria-label="时刻评论编辑器">
       <div className="composer-head">
@@ -791,7 +789,7 @@ function ComposerSheet({ activeItem, time, selectedEmoji, setSelectedEmoji, comm
       </label>
       <div className="emoji-row">
         {EMOJIS.map((emoji) => (
-          <button key={emoji} className={selectedEmoji === emoji ? "active" : ""} type="button" onClick={() => setSelectedEmoji(emoji)}>
+          <button key={emoji} type="button" onClick={() => setComment((value) => `${value}${emoji}`)}>
             {emoji}
           </button>
         ))}
