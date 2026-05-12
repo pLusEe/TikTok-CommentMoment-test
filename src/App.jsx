@@ -261,12 +261,20 @@ function PhonePrototype() {
     setActiveIndex(clamped);
   };
 
-  const forceBubble = () => {
+  const forceBubble = ({ jumpToMoment = false } = {}) => {
     if (!activeMoment) return;
+    if (jumpToMoment && activeVideo) {
+      activeVideo.currentTime = activeMoment.time;
+      setProgress(duration > 0 ? activeMoment.time / duration : 0);
+    }
     setShowBubble(true);
     window.clearTimeout(bubbleTimer.current);
     bubbleTimer.current = window.setTimeout(() => setShowBubble(false), 3000);
     setMoments((value) => value.map((item) => (item.id === activeMoment.id ? { ...item, seenOnce: true } : item)));
+  };
+
+  const handleMomentMarkerClick = () => {
+    forceBubble({ jumpToMoment: true });
   };
 
   const maybeShowBubble = (time) => {
@@ -466,13 +474,16 @@ function PhonePrototype() {
         <TopChrome />
 
         <div className={`moment-marker ${activeMoment ? "show" : ""} ${activeMoment?.seenOnce ? "collapsed" : ""}`} style={{ "--x": markerX }}>
-          <button className="marker-avatar" type="button" onClick={forceBubble}>
+          <button className="marker-avatar" type="button" onClick={handleMomentMarkerClick}>
             {activeMoment?.avatar ? <img src={activeMoment.avatar} alt="" /> : activeMoment?.fallback || "J"}
           </button>
-          <button className="marker-line" type="button" aria-label="查看时刻评论" onClick={forceBubble} />
+          <button className="marker-line" type="button" aria-label="查看时刻评论" onClick={handleMomentMarkerClick} />
         </div>
 
-        <div className={`moment-bubble ${showBubble && activeMoment ? "" : "hidden"} ${activeMoment?.text ? "" : "textless"} ${(activeMoment?.text || "").length > 18 ? "long" : ""}`}>
+        <div
+          className={`moment-bubble ${showBubble && activeMoment ? "" : "hidden"} ${activeMoment?.text ? "" : "textless"} ${(activeMoment?.text || "").length > 18 ? "long" : ""}`}
+          style={{ "--bubble-drag-y": `${isDragging || isSettling ? dragOffset : 0}px` }}
+        >
           <div className="bubble-avatar">
             {activeMoment?.avatar ? <img src={activeMoment.avatar} alt="" /> : activeMoment?.fallback || "J"}
           </div>

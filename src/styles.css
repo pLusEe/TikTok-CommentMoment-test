@@ -432,12 +432,14 @@
   }
 
   .moment-bubble {
-    @apply absolute z-[21] flex items-center gap-2 rounded-2xl px-2.5 py-2 shadow-xl backdrop-blur-md transition;
+    @apply absolute z-[21] flex items-center gap-2 rounded-2xl px-2.5 py-2 shadow-xl backdrop-blur-md;
     background: rgba(12, 12, 15, 0.7);
     left: 1rem;
     bottom: 11.25rem;
     width: fit-content;
     max-width: calc(100% - 6rem);
+    transform: translate3d(0, var(--bubble-drag-y, 0px), 0);
+    transition: opacity 150ms ease;
   }
 
   .moment-bubble.long {
@@ -446,7 +448,7 @@
 
   .moment-bubble.hidden {
     @apply pointer-events-none opacity-0;
-    transform: translateY(0.75rem);
+    transform: translate3d(0, calc(var(--bubble-drag-y, 0px) + 0.75rem), 0);
   }
 
   .moment-bubble.textless {
