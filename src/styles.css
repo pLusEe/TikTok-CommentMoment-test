@@ -414,10 +414,15 @@
     overflow: hidden;
   }
 
+  .selected-svg-mode.moment-enabled {
+    height: 31rem;
+  }
+
   .share-selected-top {
     @apply relative overflow-hidden bg-[#f8f8f8];
     height: 12.05rem;
     border-radius: 18px 18px 0 0;
+    transition: opacity 150ms ease, transform 180ms ease;
   }
 
   .share-selected-top .share-sheet-svg {
@@ -652,10 +657,15 @@
   .selected-svg-mode .share-compose {
     @apply border-t border-[#e7e7e7] bg-white px-5 pb-5 pt-5;
     min-height: 17.1rem;
+    transition: opacity 150ms ease, transform 180ms ease;
   }
 
   .selected-svg-mode .share-compose textarea {
     @apply h-[5.6rem] text-[1.05rem];
+  }
+
+  .selected-svg-mode.moment-enabled .share-compose textarea {
+    @apply h-[3.45rem];
   }
 
   .share-compose textarea::placeholder {
@@ -670,17 +680,18 @@
     @apply border-0 bg-transparent p-0 text-[1.9rem];
   }
 
+  .share-emoji-row button.active {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0.12rem 0.2rem rgba(254, 44, 85, 0.25));
+  }
+
   .selected-svg-mode .share-emoji-row {
-    @apply mb-4;
+    @apply mb-3;
   }
 
   .moment-share-check {
-    @apply mb-4 flex items-center rounded-2xl bg-[#f5f5f5] px-3 py-2.5 text-left;
+    @apply mb-3 flex w-full items-center rounded-2xl border-0 bg-[#f5f5f5] px-3 py-2.5 text-left;
     gap: 0.55rem;
-  }
-
-  .moment-share-check input {
-    @apply sr-only;
   }
 
   .moment-share-check span {
@@ -690,11 +701,17 @@
     place-items: center;
     width: 1.25rem;
     height: 1.25rem;
+    border: 0.12rem solid #cfcfcf;
     border-radius: 999px;
+    background: white;
+  }
+
+  .moment-share-check.enabled span {
+    border-color: #fe2c55;
     background: #fe2c55;
   }
 
-  .moment-share-check span::after {
+  .moment-share-check.enabled span::after {
     content: "";
     width: 0.56rem;
     height: 0.32rem;
@@ -709,6 +726,72 @@
 
   .moment-share-check small {
     @apply ml-auto text-xs font-medium text-[#8b8b8b];
+  }
+
+  .moment-time-control {
+    @apply mb-3 rounded-2xl bg-[#f6f6f6] px-3 py-2.5;
+  }
+
+  .moment-time-control.compact {
+    @apply mb-0 bg-white px-3.5 py-3 shadow-2xl;
+    border-radius: 20px;
+  }
+
+  .moment-time-row {
+    @apply mb-2 grid items-center text-center;
+    grid-template-columns: 3.2rem 1fr 3.2rem;
+  }
+
+  .moment-time-row button {
+    @apply h-8 rounded-full border-0 bg-[#ececec] text-xs font-black text-[#111];
+  }
+
+  .moment-time-control.compact .moment-time-row button {
+    @apply bg-[#f2f2f2];
+  }
+
+  .moment-time-row strong {
+    @apply text-sm font-black text-[#111];
+  }
+
+  .moment-time-slider {
+    @apply relative flex h-6 items-center;
+    touch-action: none;
+  }
+
+  .moment-time-track {
+    @apply relative w-full rounded-full bg-[#d7d7d7];
+    height: 0.22rem;
+  }
+
+  .moment-time-fill {
+    @apply h-full rounded-full bg-tiktok-pink;
+  }
+
+  .moment-time-thumb {
+    @apply absolute top-1/2 rounded-full bg-white shadow-md;
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 0.18rem solid #fe2c55;
+    transform: translate(-50%, -50%);
+  }
+
+  .moment-scrub-mini {
+    @apply pointer-events-none absolute left-4 right-4 z-[2] opacity-0;
+    bottom: 0.95rem;
+    transform: translateY(0.7rem);
+    transition: opacity 140ms ease, transform 180ms ease;
+  }
+
+  .selected-svg-mode.scrubbing .share-selected-top,
+  .selected-svg-mode.scrubbing .share-compose {
+    @apply pointer-events-none opacity-0;
+    transform: translateY(6rem);
+  }
+
+  .selected-svg-mode.scrubbing .moment-scrub-mini {
+    @apply pointer-events-auto opacity-100;
+    transform: translateY(0);
   }
 
   .native-send-button {

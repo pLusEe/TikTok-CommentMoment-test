@@ -23,6 +23,7 @@ const profileNav = new URL("../assets/ui-kit/Frame 41.svg", import.meta.url).hre
 const searchIcon = new URL("../assets/ui-kit/search.png", import.meta.url).href;
 const liveIcon = new URL("../assets/ui-kit/live.png", import.meta.url).href;
 const shareSheetSvg = new URL("../assets/ui-kit/发送给.svg", import.meta.url).href;
+const selectedShareSheetSvg = new URL("../assets/ui-kit/发送给-选中头像.svg", import.meta.url).href;
 
 const FEED_ITEMS = [
   {
@@ -116,6 +117,9 @@ function PhonePrototype() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
   const [isResettingFeed, setIsResettingFeed] = useState(false);
+  const [draftMomentTime, setDraftMomentTime] = useState(0);
+  const [isMomentEnabled, setIsMomentEnabled] = useState(false);
+  const [isMomentScrubbing, setIsMomentScrubbing] = useState(false);
   const [moment, setMoment] = useState({
     exists: false,
     videoIndex: 0,
@@ -147,7 +151,11 @@ function PhonePrototype() {
     window.setTimeout(() => setToast(""), 1300);
   };
 
-  const closePanels = () => setPanel(null);
+  const closePanels = () => {
+    setPanel(null);
+    setIsMomentScrubbing(false);
+    setPausedState(false);
+  };
 
   const setPausedState = (paused) => {
     setIsPaused(paused);
@@ -168,6 +176,52 @@ function PhonePrototype() {
     }
   };
 
+  const syncDraftMomentTime = (nextTime, pauseVideo = false) => {
+    const clampedTime = Math.max(0, Math.min(duration, nextTime));
+    setDraftMomentTime(clampedTime);
+    setProgress(duration > 0 ? clampedTime / duration : 0);
+    if (activeVideo) activeVideo.currentTime = clampedTime;
+    if (pauseVideo) setPausedState(true);
+  };
+
+  const openShare = () => {
+    setIsMomentEnabled(false);
+    setIsMomentScrubbing(false);
+    setDraftMomentTime(currentTime);
+    setPanel("share");
+  };
+
+  const handleSelectSharePerson = () => {
+    setIsMomentEnabled(false);
+    setIsMomentScrubbing(false);
+    setDraftMomentTime(currentTime);
+  };
+
+  const toggleMomentShare = () => {
+    if (isMomentEnabled) {
+      setIsMomentEnabled(false);
+      setIsMomentScrubbing(false);
+      setPausedState(false);
+      return;
+    }
+    setDraftMomentTime(currentTime);
+    setIsMomentEnabled(true);
+  };
+
+  const beginMomentScrub = () => {
+    setIsMomentScrubbing(true);
+    setPausedState(true);
+  };
+
+  const endMomentScrub = () => {
+    setIsMomentScrubbing(false);
+    setPausedState(true);
+  };
+
+  const stepDraftMomentTime = (delta) => {
+    syncDraftMomentTime(draftMomentTime + delta, true);
+  };
+
   const goToVideo = (nextIndex) => {
     const total = FEED_ITEMS.length;
     const clamped = ((nextIndex % total) + total) % total;
@@ -175,6 +229,8 @@ function PhonePrototype() {
     setShowBubble(false);
     setDragOffset(0);
     setIsPaused(false);
+    setIsMomentEnabled(false);
+    setIsMomentScrubbing(false);
     setActiveIndex(clamped);
   };
 
@@ -193,11 +249,11 @@ function PhonePrototype() {
     }
   };
 
-  const saveMoment = () => {
+  const saveMoment = (timeOverride = currentTime) => {
     const nextMoment = {
       exists: true,
       videoIndex: activeIndex,
-      time: Math.round(currentTime),
+      time: Math.round(timeOverride),
       emoji: selectedEmoji,
       text: comment.trim() || "就是这一秒笑死我了",
       seenOnce: false,
@@ -209,6 +265,17 @@ function PhonePrototype() {
 
     const video = videoRefs.current[activeIndex];
     if (video) video.currentTime = Math.max(0, nextMoment.time - 1.2);
+    setPausedState(false);
+  };
+
+  const sendShare = () => {
+    if (isMomentEnabled) {
+      saveMoment(draftMomentTime);
+      return;
+    }
+    setPanel(null);
+    setIsMomentScrubbing(false);
+    showToast("已发送给 Jess");
     setPausedState(false);
   };
 
@@ -362,9 +429,7 @@ function PhonePrototype() {
               <VideoChrome
                 item={item}
                 isActive={index === activeIndex}
-                onShare={() => {
-                  setPanel("share");
-                }}
+                onShare={openShare}
               />
             </article>
           ))}
@@ -421,9 +486,21 @@ function PhonePrototype() {
         {panel === "share" && (
           <ShareSheet
             people={people}
-            time={formatTime(currentTime)}
+            comment={comment}
+            setComment={setComment}
+            setSelectedEmoji={setSelectedEmoji}
+            duration={duration}
+            draftMomentTime={draftMomentTime}
+            isMomentEnabled={isMomentEnabled}
+            isMomentScrubbing={isMomentScrubbing}
+            onSelectPerson={handleSelectSharePerson}
+            onToggleMoment={toggleMomentShare}
+            onMomentScrubStart={beginMomentScrub}
+            onMomentScrubEnd={endMomentScrub}
+            onMomentTimeChange={(nextTime) => syncDraftMomentTime(nextTime, true)}
+            onMomentStep={stepDraftMomentTime}
             onClose={closePanels}
-            onComposer={() => setPanel("composer")}
+            onSend={sendShare}
           />
         )}
 
@@ -526,7 +603,24 @@ function ActionButton({ icon, label, value, onClick }) {
   );
 }
 
-function ShareSheet({ people, onClose }) {
+function ShareSheet({
+  people,
+  comment,
+  setComment,
+  setSelectedEmoji,
+  duration,
+  draftMomentTime,
+  isMomentEnabled,
+  isMomentScrubbing,
+  onSelectPerson,
+  onToggleMoment,
+  onMomentScrubStart,
+  onMomentScrubEnd,
+  onMomentTimeChange,
+  onMomentStep,
+  onClose,
+  onSend,
+}) {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const quickEmojis = ["🥰", "👍", "😂", "😎", "🥺", "🙏"];
 
@@ -535,35 +629,126 @@ function ShareSheet({ people, onClose }) {
       <section className="sheet svg-share-sheet" aria-label="发送给">
         <img className="share-sheet-svg" src={shareSheetSvg} alt="发送给" />
         <button className="share-svg-close" type="button" aria-label="关闭" onClick={onClose} />
-        <button className="share-svg-first-person" type="button" aria-label="选择 jiayiwang578" onClick={() => setSelectedPerson(people[0])} />
+        <button
+          className="share-svg-first-person"
+          type="button"
+          aria-label="选择 jiayiwang578"
+          onClick={() => {
+            setSelectedPerson(people[0]);
+            onSelectPerson();
+          }}
+        />
       </section>
     );
   }
 
   return (
-    <section className="sheet selected-svg-mode" aria-label="发送给">
+    <section className={`sheet selected-svg-mode ${isMomentEnabled ? "moment-enabled" : ""} ${isMomentScrubbing ? "scrubbing" : ""}`} aria-label="发送给">
       <div className="share-selected-top">
-        <img className="share-sheet-svg" src={shareSheetSvg} alt="" />
+        <img className="share-sheet-svg" src={selectedShareSheetSvg} alt="" />
         <button className="share-svg-close" type="button" aria-label="关闭" onClick={onClose} />
-        <span className="share-selected-check" aria-hidden="true">✓</span>
       </div>
 
       <div className="share-compose">
-        <textarea placeholder="有什么想和朋友说的..." />
+        <textarea value={comment} placeholder="有什么想和朋友说的..." onChange={(event) => setComment(event.target.value)} />
         <div className="share-emoji-row">
           {quickEmojis.map((emoji) => (
-            <button key={emoji} type="button">{emoji}</button>
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => {
+                setComment((value) => `${value}${emoji}`);
+                setSelectedEmoji(emoji);
+              }}
+            >
+              {emoji}
+            </button>
           ))}
         </div>
-        <label className="moment-share-check">
-          <input type="checkbox" defaultChecked />
+        <button className={`moment-share-check ${isMomentEnabled ? "enabled" : ""}`} type="button" onClick={onToggleMoment}>
           <span />
           <strong>时刻分享</strong>
-          <small>把这句话留在当前这一秒</small>
-        </label>
-        <button className="native-send-button" type="button">发送</button>
+          <small>{isMomentEnabled ? `留在 ${formatTime(draftMomentTime)}` : "把留言留在视频里的某一秒"}</small>
+        </button>
+        {isMomentEnabled && (
+          <MomentTimeControl
+            duration={duration}
+            time={draftMomentTime}
+            onStep={onMomentStep}
+            onScrubStart={onMomentScrubStart}
+            onScrubEnd={onMomentScrubEnd}
+            onTimeChange={onMomentTimeChange}
+          />
+        )}
+        <button className="native-send-button" type="button" onClick={onSend}>发送</button>
       </div>
+
+      {isMomentEnabled && (
+        <div className="moment-scrub-mini">
+          <MomentTimeControl
+            compact
+            duration={duration}
+            time={draftMomentTime}
+            onStep={onMomentStep}
+            onScrubStart={onMomentScrubStart}
+            onScrubEnd={onMomentScrubEnd}
+            onTimeChange={onMomentTimeChange}
+          />
+        </div>
+      )}
     </section>
+  );
+}
+
+function MomentTimeControl({ compact = false, duration, time, onStep, onScrubStart, onScrubEnd, onTimeChange }) {
+  const progressPercent = `${Math.max(0, Math.min(100, (time / duration) * 100))}%`;
+  const updateFromPointer = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const nextProgress = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    onTimeChange(nextProgress * duration);
+  };
+
+  return (
+    <div className={`moment-time-control ${compact ? "compact" : ""}`}>
+      <div className="moment-time-row">
+        <button type="button" onClick={() => onStep(-1)}>-1s</button>
+        <strong>留在 {formatTime(time)}</strong>
+        <button type="button" onClick={() => onStep(1)}>+1s</button>
+      </div>
+      <div
+        className="moment-time-slider"
+        role="slider"
+        aria-label="时刻分享时间点"
+        aria-valuemin="0"
+        aria-valuemax={Math.round(duration)}
+        aria-valuenow={Math.round(time)}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          event.currentTarget.classList.add("dragging");
+          onScrubStart();
+          updateFromPointer(event);
+        }}
+        onPointerMove={(event) => {
+          if (!event.currentTarget.classList.contains("dragging")) return;
+          updateFromPointer(event);
+        }}
+        onPointerUp={(event) => {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+          event.currentTarget.classList.remove("dragging");
+          onScrubEnd();
+        }}
+        onPointerCancel={(event) => {
+          event.currentTarget.classList.remove("dragging");
+          onScrubEnd();
+        }}
+      >
+        <div className="moment-time-track">
+          <div className="moment-time-fill" style={{ width: progressPercent }} />
+        </div>
+        <span className="moment-time-thumb" style={{ left: progressPercent }} />
+      </div>
+    </div>
   );
 }
 
