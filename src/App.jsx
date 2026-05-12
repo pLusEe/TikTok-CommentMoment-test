@@ -22,6 +22,7 @@ const inboxNav = new URL("../assets/ui-kit/Frame 40.svg", import.meta.url).href;
 const profileNav = new URL("../assets/ui-kit/Frame 41.svg", import.meta.url).href;
 const searchIcon = new URL("../assets/ui-kit/search.png", import.meta.url).href;
 const liveIcon = new URL("../assets/ui-kit/live.png", import.meta.url).href;
+const shareSheetSvg = new URL("../assets/ui-kit/发送给.svg", import.meta.url).href;
 
 const FEED_ITEMS = [
   {
@@ -530,8 +531,18 @@ function ShareSheet({ people, onClose }) {
   const quickEmojis = ["🥰", "👍", "😂", "😎", "🥺", "🙏"];
   const selectedName = selectedPerson?.name || people[0]?.name || "";
 
+  if (!selectedPerson) {
+    return (
+      <section className="sheet svg-share-sheet" aria-label="发送给">
+        <img className="share-sheet-svg" src={shareSheetSvg} alt="发送给" />
+        <button className="share-svg-close" type="button" aria-label="关闭" onClick={onClose} />
+        <button className="share-svg-first-person" type="button" aria-label="选择 jiayiwang578" onClick={() => setSelectedPerson(people[0])} />
+      </section>
+    );
+  }
+
   return (
-    <section className={`sheet ${selectedPerson ? "selected-mode" : ""}`} aria-label="发送给">
+    <section className="sheet selected-mode" aria-label="发送给">
       <div className="sheet-head">
         <button className="sheet-search" aria-label="搜索" type="button" />
         <strong>发送给</strong>

@@ -377,6 +377,37 @@
     overflow: hidden;
   }
 
+  .svg-share-sheet {
+    @apply bg-transparent p-0 shadow-none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .share-sheet-svg {
+    @apply block w-full select-none;
+    height: auto;
+    -webkit-user-drag: none;
+  }
+
+  .share-svg-close,
+  .share-svg-first-person {
+    @apply absolute border-0 bg-transparent p-0;
+  }
+
+  .share-svg-close {
+    right: 1.2rem;
+    top: 1.1rem;
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+
+  .share-svg-first-person {
+    left: 1.2rem;
+    top: 4.55rem;
+    width: 4.7rem;
+    height: 6.4rem;
+  }
+
   .sheet.selected-mode {
     height: 29.4rem;
   }
