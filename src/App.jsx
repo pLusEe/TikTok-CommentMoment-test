@@ -85,11 +85,13 @@ const PEOPLE = [
   { avatar: "+", name: "邀请好友聊", add: true },
 ];
 
+const HOME_FEED_INDICES = [0, 2];
+
 const DEFAULT_MOMENTS = [
   {
     id: "jane-donkey",
     videoIndex: 1,
-    time: 5,
+    time: 4,
     author: "jane",
     avatar: janeAvatar,
     fallback: "J",
@@ -120,6 +122,21 @@ function formatScrubTime(seconds) {
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
+function getHomeFeedNeighbor(index, direction) {
+  const currentPosition = HOME_FEED_INDICES.indexOf(index);
+  if (currentPosition >= 0) {
+    return HOME_FEED_INDICES[
+      (currentPosition + direction + HOME_FEED_INDICES.length) % HOME_FEED_INDICES.length
+    ];
+  }
+
+  if (direction > 0) {
+    return HOME_FEED_INDICES.find((item) => item > index) ?? HOME_FEED_INDICES[0];
+  }
+
+  return [...HOME_FEED_INDICES].reverse().find((item) => item < index) ?? HOME_FEED_INDICES[HOME_FEED_INDICES.length - 1];
+}
+
 export default function App() {
   return (
     <main className="stage">
@@ -145,6 +162,7 @@ function PhonePrototype() {
   const [toast, setToast] = useState("");
   const [comment, setComment] = useState("");
   const [showBubble, setShowBubble] = useState(false);
+  const [dragOffsetX, setDragOffsetX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
@@ -152,6 +170,7 @@ function PhonePrototype() {
   const [draftMomentTime, setDraftMomentTime] = useState(0);
   const [isMomentEnabled, setIsMomentEnabled] = useState(false);
   const [isMomentScrubbing, setIsMomentScrubbing] = useState(false);
+  const [isSharedEntry, setIsSharedEntry] = useState(false);
   const [moments, setMoments] = useState(DEFAULT_MOMENTS);
 
   const activeItem = FEED_ITEMS[activeIndex];
@@ -162,17 +181,26 @@ function PhonePrototype() {
   const activeMoment = momentItems.find((item) => item.videoIndex === activeIndex);
   const markerX = activeMoment ? `${Math.max(2, Math.min(98, (activeMoment.time / duration) * 100))}%` : "35%";
   const nativeScrubPercent = duration > 0 ? Math.max(0, Math.min(100, (draftMomentTime / duration) * 100)) : 0;
+  const appWidth = appRef.current?.clientWidth || 414;
+  const appHeight = appRef.current?.clientHeight || 896;
+  const sharedDragScale = isSharedEntry
+    ? Math.max(0.78, 1 - Math.min(Math.max(Math.abs(dragOffsetX) / appWidth, Math.abs(dragOffset) / appHeight), 1) * 0.18)
+    : 1;
   const people = useMemo(() => PEOPLE, []);
   const renderSlots = useMemo(() => {
-    const total = FEED_ITEMS.length;
-    const previous = (activeIndex - 1 + total) % total;
-    const next = (activeIndex + 1) % total;
+    if (isSharedEntry) {
+      return [
+        { slot: "current", index: activeIndex, item: FEED_ITEMS[activeIndex] },
+      ];
+    }
+    const previous = getHomeFeedNeighbor(activeIndex, -1);
+    const next = getHomeFeedNeighbor(activeIndex, 1);
     return [
       { slot: "previous", index: previous, item: FEED_ITEMS[previous] },
       { slot: "current", index: activeIndex, item: FEED_ITEMS[activeIndex] },
       { slot: "next", index: next, item: FEED_ITEMS[next] },
     ];
-  }, [activeIndex]);
+  }, [activeIndex, isSharedEntry]);
 
   const showToast = (message) => {
     setToast(message.includes("Jess") ? "发送给 jane" : message);
@@ -180,10 +208,51 @@ function PhonePrototype() {
   };
 
   const navigateApp = (nextView) => {
+    setIsSharedEntry(false);
+    if (nextView === "feed" && !HOME_FEED_INDICES.includes(activeIndex)) {
+      setActiveIndex(HOME_FEED_INDICES[0]);
+    }
     setAppView(nextView);
     setPanel(null);
     setShowBubble(false);
     setIsMomentScrubbing(false);
+    setDragOffsetX(0);
+    setDragOffset(0);
+  };
+
+  const openSharedMomentFromChat = () => {
+    const sharedMoment = DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey");
+    if (!sharedMoment) return;
+
+    setAppView("feed");
+    setPanel(null);
+    setFriendView(true);
+    setShowBubble(false);
+    setIsMomentScrubbing(false);
+    setIsDragging(false);
+    setIsSettling(false);
+    setIsResettingFeed(false);
+    setDragOffsetX(0);
+    setDragOffset(0);
+    setIsSharedEntry(true);
+    setActiveIndex(sharedMoment.videoIndex);
+    setIsPaused(false);
+
+    window.clearTimeout(bubbleTimer.current);
+    window.setTimeout(() => {
+      const video = videoRefs.current[sharedMoment.videoIndex];
+      const videoDuration = Number.isFinite(video?.duration) && video.duration > 0 ? video.duration : 20;
+      if (video) {
+        video.currentTime = sharedMoment.time;
+        video.play().catch(() => {});
+      }
+      setProgress(sharedMoment.time / videoDuration);
+      setShowBubble(true);
+      setMoments((value) =>
+        value.map((item) => (item.id === sharedMoment.id ? { ...item, seenOnce: true } : item))
+      );
+      bubbleTimer.current = window.setTimeout(() => setShowBubble(false), 3200);
+    }, 90);
   };
 
   const closePanels = () => {
@@ -259,10 +328,10 @@ function PhonePrototype() {
   };
 
   const goToVideo = (nextIndex) => {
-    const total = FEED_ITEMS.length;
-    const clamped = ((nextIndex % total) + total) % total;
+    const clamped = nextIndex;
     setPanel(null);
     setShowBubble(false);
+    setDragOffsetX(0);
     setDragOffset(0);
     setIsPaused(false);
     setIsMomentEnabled(false);
@@ -326,7 +395,7 @@ function PhonePrototype() {
 
   const handlePointerDown = (event) => {
     if (isSettling) return;
-    if (event.target.closest("button, textarea, .sheet, .composer, .progress-wrap")) return;
+    if (event.target.closest("button, textarea, .sheet, .composer, .progress-wrap, .shared-reply-dock")) return;
 
     pointerStart.current = {
       x: event.clientX,
@@ -351,13 +420,20 @@ function PhonePrototype() {
       closePanels();
     }
 
-    setDragOffset(pointerStart.current.moved ? dy : 0);
+    if (pointerStart.current.moved) {
+      setDragOffset(dy);
+      setDragOffsetX(isSharedEntry ? dx : 0);
+    } else {
+      setDragOffset(0);
+      setDragOffsetX(0);
+    }
   };
 
   const handlePointerUp = (event) => {
     setIsDragging(false);
 
     if (!pointerStart.current) {
+      setDragOffsetX(0);
       setDragOffset(0);
       return;
     }
@@ -367,15 +443,35 @@ function PhonePrototype() {
     const dy = event.clientY - pointerStart.current.y;
     const elapsed = Math.max(1, performance.now() - pointerStart.current.time);
     const height = appRef.current?.clientHeight || 896;
+    const width = appRef.current?.clientWidth || 414;
     const shouldFlip = Math.abs(dy) >= height * 0.5;
-    const nextIndex = activeIndex + (dy < 0 ? 1 : -1);
+    const shouldDismissShared = Math.abs(dy) >= height * 0.28 || Math.abs(dx) >= width * 0.28;
+    const nextIndex = getHomeFeedNeighbor(activeIndex, dy < 0 ? 1 : -1);
     const isTap = !pointerStart.current.moved && Math.abs(dx) < 10 && Math.abs(dy) < 10 && elapsed < 520;
 
     pointerStart.current = null;
 
     if (isTap && !panel) {
       setPausedState(!isPaused);
+      setDragOffsetX(0);
       setDragOffset(0);
+    } else if (isSharedEntry) {
+      if (shouldDismissShared) {
+        setIsSettling(true);
+        const horizontalExit = Math.abs(dx) > Math.abs(dy);
+        setDragOffsetX(horizontalExit ? (dx < 0 ? -width : width) : dx);
+        setDragOffset(horizontalExit ? dy : (dy < 0 ? -height : height));
+        window.clearTimeout(settleTimer.current);
+        settleTimer.current = window.setTimeout(() => {
+          setIsSettling(false);
+          setDragOffsetX(0);
+          setDragOffset(0);
+          navigateApp("chat");
+        }, 260);
+      } else {
+        setDragOffsetX(0);
+        setDragOffset(0);
+      }
     } else if (shouldFlip) {
       setIsSettling(true);
       setDragOffset(dy < 0 ? -height : height);
@@ -389,6 +485,7 @@ function PhonePrototype() {
         });
       }, 260);
     } else {
+      setDragOffsetX(0);
       setDragOffset(0);
     }
   };
@@ -433,7 +530,12 @@ function PhonePrototype() {
     <section className="phone" aria-label="移动端抖音原型">
       <div
         ref={appRef}
-        className={`app ${appView === "inbox" ? "inbox-app" : ""} ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""}`}
+        className={`app ${appView === "inbox" || appView === "chat" ? "inbox-app" : ""} ${isSharedEntry ? "shared-entry" : ""} ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""}`}
+        style={isSharedEntry ? {
+          "--shared-drag-x": `${dragOffsetX}px`,
+          "--shared-drag-y": `${dragOffset}px`,
+          "--shared-scale": sharedDragScale,
+        } : undefined}
         onPointerDown={appView === "feed" ? handlePointerDown : undefined}
         onPointerMove={appView === "feed" ? handlePointerMove : undefined}
         onPointerUp={appView === "feed" ? handlePointerUp : undefined}
@@ -443,22 +545,35 @@ function PhonePrototype() {
           setIsDragging(false);
           setIsSettling(false);
           setIsResettingFeed(false);
+          setDragOffsetX(0);
           setDragOffset(0);
         } : undefined}
       >
-        {appView === "inbox" ? (
-          <InboxPage onNavigate={navigateApp} />
+        {appView === "chat" ? (
+          <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} />
+        ) : appView === "inbox" ? (
+          <InboxPage onNavigate={navigateApp} onOpenChat={() => navigateApp("chat")} />
         ) : (
         <>
+        {isSharedEntry && (
+          <div className="shared-chat-underlay" aria-hidden="true">
+            <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} />
+          </div>
+        )}
         <div
           className="feed-track"
-          style={{ transform: `translate3d(0, calc(-100% + ${dragOffset}px), 0)` }}
+          style={{
+            transform: isSharedEntry
+              ? `translate3d(${dragOffsetX}px, ${dragOffset}px, 0) scale(${sharedDragScale})`
+              : `translate3d(0, calc(-100% + ${dragOffset}px), 0)`,
+            transformOrigin: isSharedEntry ? "center center" : undefined,
+          }}
         >
           {renderSlots.map(({ item, index, slot }) => (
             <article className="video-screen" data-index={index} data-slot={slot} key={`${slot}-${item.src}`}>
               <video
                 ref={(node) => {
-                  videoRefs.current[index] = node;
+                  if (slot === "current") videoRefs.current[index] = node;
                 }}
                 className="video-bg"
                 src={item.src}
@@ -484,7 +599,11 @@ function PhonePrototype() {
           ))}
         </div>
 
-        <TopChrome />
+        {isSharedEntry ? (
+          <SharedEntryTopChrome onBack={() => navigateApp("chat")} />
+        ) : (
+          <TopChrome />
+        )}
 
         <div className={`moment-marker ${activeMoment ? "show" : ""} ${activeMoment?.seenOnce ? "collapsed" : ""}`} style={{ "--x": markerX }}>
           <button className="marker-avatar" type="button" onClick={handleMomentMarkerClick}>
@@ -551,7 +670,11 @@ function PhonePrototype() {
           <button className="progress-thumb" style={{ left: `${progress * 100}%` }} aria-label="视频进度" />
         </div>
 
-        <AppBottomNav active="home" onNavigate={navigateApp} />
+        {isSharedEntry ? (
+          <SharedReplyBar />
+        ) : (
+          <AppBottomNav active="home" onNavigate={navigateApp} />
+        )}
 
         {panel === "share" && (
           <ShareSheet
@@ -643,6 +766,36 @@ function TopChrome() {
   );
 }
 
+function SharedEntryTopChrome({ onBack }) {
+  return (
+    <div className="shared-top-chrome">
+      <img className="status-bar" src={statusBar} alt="" />
+      <button className="shared-back" type="button" aria-label="返回对话" onClick={onBack} />
+      <button className="shared-search" type="button" aria-label="搜索">
+        <img src={searchIcon} alt="" />
+      </button>
+    </div>
+  );
+}
+
+function SharedReplyBar() {
+  return (
+    <div className="shared-reply-dock" aria-label="私信回复">
+      <div className="shared-search-strip">
+        <img src={searchIcon} alt="" />
+        <span>搜索 · cute donkey video</span>
+        <b />
+      </div>
+      <div className="shared-reply-bar">
+        <span className="shared-reply-input">发消息给 jane...</span>
+        <span className="shared-reply-emoji">😍</span>
+        <span className="shared-reply-emoji">😂</span>
+        <span className="shared-reply-emoji">😳</span>
+      </div>
+    </div>
+  );
+}
+
 function BottomNav() {
   return (
     <nav className="bottom-nav" aria-label="底部导航">
@@ -695,7 +848,7 @@ function AppBottomNav({ active = "home", variant = "dark", onNavigate = () => {}
   );
 }
 
-function InboxPage({ onNavigate }) {
+function InboxPage({ onNavigate, onOpenChat }) {
   return (
     <section className="inbox-page" aria-label="收件箱">
       <img className="inbox-status-bar" src={statusBar} alt="" />
@@ -723,16 +876,69 @@ function InboxPage({ onNavigate }) {
       </section>
 
       <section className="inbox-list" aria-label="消息列表">
-        <InboxRow avatar={janeAvatar} title="jane" subtitle="[分享时刻评论]" unread />
+        <InboxRow avatar={janeAvatar} title="jane" subtitle="[分享时刻评论]" unread onClick={onOpenChat} />
       </section>
       <AppBottomNav active="inbox" variant="light" onNavigate={onNavigate} />
     </section>
   );
 }
 
-function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot = false, right }) {
+function ChatPage({ onBack, onOpenMoment }) {
+  const sharedItem = FEED_ITEMS[1];
+  const sharedMoment = DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey") || DEFAULT_MOMENTS[0];
+
   return (
-    <article className="inbox-row">
+    <section className="chat-page" aria-label="与 jane 的对话">
+      <img className="chat-status-bar" src={statusBar} alt="" />
+
+      <header className="chat-header">
+        <button className="chat-back" type="button" aria-label="返回收件箱" onClick={onBack} />
+        <span className="chat-title-avatar"><img src={janeAvatar} alt="" /></span>
+        <strong>jane</strong>
+        <button className="chat-more" type="button" aria-label="更多"><i /><i /><i /></button>
+      </header>
+
+      <main className="chat-body">
+        <div className="chat-date">星期一 下午9:54</div>
+        <div className="chat-message-row">
+          <span className="chat-avatar"><img src={janeAvatar} alt="" /></span>
+          <div className="chat-message-stack">
+            <button className="chat-video-card" type="button" onClick={onOpenMoment}>
+              <span className="chat-video-thumb">
+                <img src={sharedItem.preview} alt="" />
+                <i className="chat-play" aria-hidden="true" />
+                <b className="chat-time-badge">时刻 {formatTime(sharedMoment.time)}</b>
+                <strong>{sharedItem.author}</strong>
+              </span>
+            </button>
+            <span className="chat-moment-comment">{sharedMoment.text}</span>
+          </div>
+        </div>
+      </main>
+
+      <footer className="chat-composer" aria-hidden="true">
+        <div className="chat-reactions">
+          <span>❤️</span>
+          <span>😂</span>
+          <span>👍</span>
+          <span>分享发布内容</span>
+        </div>
+        <div className="chat-input-row">
+          <span className="chat-camera" />
+          <span className="chat-input-pill">消息...</span>
+          <span className="chat-small-icon image" />
+          <span className="chat-small-icon emoji" />
+          <span className="chat-small-icon mic" />
+        </div>
+      </footer>
+    </section>
+  );
+}
+
+function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot = false, right, onClick }) {
+  const RowTag = onClick ? "button" : "article";
+  return (
+    <RowTag className="inbox-row" type={onClick ? "button" : undefined} onClick={onClick}>
       <span className={`inbox-row-avatar ${iconClass || ""}`}>
         {avatar ? <img src={avatar} alt="" /> : null}
       </span>
@@ -743,7 +949,7 @@ function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot =
       {unread && <span className="inbox-unread" />}
       {redDot && <span className="inbox-red-dot" />}
       {right && <span className="inbox-row-right">{right}</span>}
-    </article>
+    </RowTag>
   );
 }
 
