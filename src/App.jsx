@@ -85,7 +85,7 @@ const PEOPLE = [
   { avatar: "+", name: "邀请好友聊", add: true },
 ];
 
-const HOME_FEED_INDICES = [0, 2];
+const HOME_FEED_INDICES = [2, 0];
 
 const DEFAULT_MOMENTS = [
   {
@@ -139,16 +139,40 @@ function getHomeFeedNeighbor(index, direction) {
 
 const TUTORIAL_STEPS = [
   {
-    id: "share",
+    id: "wait-bubble",
     group: "Task 1",
-    title: "发送一条时刻评论",
-    body: "先点击右侧的分享按钮，准备把这一秒分享给 Jane。",
+    title: "先查看好友的时刻评论",
+    body: "播放到 Jane 标记的时刻时，评论会自动出现；首次出现后约 3 秒收起。",
+    hint: "目标：等待自动触发",
+    target: "moment-marker",
+  },
+  {
+    id: "replay-marker",
+    group: "Task 1",
+    title: "点击时刻点复看",
+    body: "评论收起后，点击进度条上的头像点，会跳回该时间并再次显示评论。",
+    hint: "目标：进度条头像点",
+    target: "moment-marker",
+  },
+  {
+    id: "swipe-next",
+    group: "Task 2",
+    title: "切到下一条视频",
+    body: "现在向上滑到下一条视频，试着自己发送一条时刻评论。",
+    hint: "目标：向上滑动视频",
+    target: "phone-swipe",
+  },
+  {
+    id: "share",
+    group: "Task 2",
+    title: "试着发送一条时刻评论",
+    body: "现在你来创建一条时刻评论。点击右侧分享按钮，准备把这一秒分享给 Jane。",
     hint: "目标：右侧分享按钮",
     target: "share-button",
   },
   {
     id: "select-person",
-    group: "Task 1",
+    group: "Task 2",
     title: "选择 Jane",
     body: "在发送给面板里点击第一个头像，进入发送状态。",
     hint: "目标：头像",
@@ -156,7 +180,7 @@ const TUTORIAL_STEPS = [
   },
   {
     id: "moment-toggle",
-    group: "Task 1",
+    group: "Task 2",
     title: "开启时刻分享",
     body: "勾选时刻分享，让这次发送绑定到视频里的某一秒。",
     hint: "目标：时刻分享开关",
@@ -164,7 +188,7 @@ const TUTORIAL_STEPS = [
   },
   {
     id: "comment",
-    group: "Task 1",
+    group: "Task 2",
     title: "可选输入留言",
     body: "把时间点拖到 0:12 左右，再输入一句轻松的留言，比如“这件衣服是不是你也有啊”。",
     hint: "目标：留言输入框",
@@ -172,7 +196,7 @@ const TUTORIAL_STEPS = [
   },
   {
     id: "time",
-    group: "Task 1",
+    group: "Task 2",
     title: "选择任意时刻",
     body: "拖动时间轴选择想标记的时间点，不需要精确到某一秒。",
     hint: "目标：时刻时间轴",
@@ -180,35 +204,11 @@ const TUTORIAL_STEPS = [
   },
   {
     id: "send",
-    group: "Task 1",
+    group: "Task 2",
     title: "发送给 Jane",
     body: "点击发送后，视频进度条会出现一个时刻评论标记。",
     hint: "目标：发送按钮",
     target: "send-button",
-  },
-  {
-    id: "swipe-next",
-    group: "Task 2",
-    title: "查看好友的时刻评论",
-    body: "向上滑到首页里的下一条视频，等待 Jane 的时刻评论自动出现。",
-    hint: "目标：向上滑动视频",
-    target: "phone-swipe",
-  },
-  {
-    id: "wait-bubble",
-    group: "Task 2",
-    title: "等待评论自动出现",
-    body: "播放到 Jane 标记的时刻时，评论会自动出现；首次出现后约 3 秒收起。",
-    hint: "目标：等待自动触发",
-    target: "moment-marker",
-  },
-  {
-    id: "replay-marker",
-    group: "Task 2",
-    title: "点击时刻点复看",
-    body: "评论收起后，点击进度条上的头像点，会跳回该时间并再次显示评论。",
-    hint: "目标：进度条头像点",
-    target: "moment-marker",
   },
   {
     id: "open-inbox",
@@ -247,7 +247,7 @@ const TUTORIAL_STEPS = [
 const TUTORIAL_STEP_INDEX = Object.fromEntries(TUTORIAL_STEPS.map((step, index) => [step.id, index]));
 
 export default function App() {
-  const [tutorialStepId, setTutorialStepId] = useState("share");
+  const [tutorialStepId, setTutorialStepId] = useState("wait-bubble");
   const [tutorialDismissed, setTutorialDismissed] = useState(false);
   const tutorialStep = TUTORIAL_STEPS[TUTORIAL_STEP_INDEX[tutorialStepId]] || TUTORIAL_STEPS[0];
 
@@ -265,14 +265,14 @@ export default function App() {
     if (current === "moment-toggle" && action === "toggleMoment" && payload.enabled) goToTutorialStep("comment");
     if (current === "comment" && action === "commentInput") goToTutorialStep("time");
     if ((current === "comment" || current === "time") && action === "momentScrub") goToTutorialStep("send");
-    if ((current === "comment" || current === "time" || current === "send") && action === "sendMoment") goToTutorialStep("swipe-next");
-    if (current === "swipe-next" && action === "homeVideoChanged" && payload.index === HOME_FEED_INDICES[1]) goToTutorialStep("wait-bubble");
+    if (current === "swipe-next" && action === "homeVideoChanged" && payload.index === HOME_FEED_INDICES[1]) goToTutorialStep("share");
+    if ((current === "comment" || current === "time" || current === "send") && action === "sendMoment") goToTutorialStep("open-inbox");
     if (current === "wait-bubble" && action === "momentBubbleShown") {
       window.setTimeout(() => {
         setTutorialStepId((value) => (value === "wait-bubble" ? "replay-marker" : value));
       }, 3200);
     }
-    if (current === "replay-marker" && action === "markerReplay") goToTutorialStep("open-inbox");
+    if (current === "replay-marker" && action === "markerReplay") goToTutorialStep("swipe-next");
     if (current === "open-inbox" && action === "openInbox") goToTutorialStep("open-chat");
     if (current === "open-chat" && action === "openChat") goToTutorialStep("open-shared-video");
     if (current === "open-shared-video" && action === "openSharedVideo") goToTutorialStep("done");
@@ -280,7 +280,7 @@ export default function App() {
 
   const resetTutorial = () => {
     setTutorialDismissed(false);
-    setTutorialStepId("share");
+    setTutorialStepId("wait-bubble");
   };
 
   return (
@@ -359,9 +359,9 @@ function PhonePrototype({ guideAction = () => {}, guideTarget = null }) {
   const bubbleTimer = useRef(null);
   const settleTimer = useRef(null);
   const pointerStart = useRef(null);
-  const previousIndex = useRef(0);
+  const previousIndex = useRef(HOME_FEED_INDICES[0]);
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(HOME_FEED_INDICES[0]);
   const [appView, setAppView] = useState("feed");
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
