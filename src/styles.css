@@ -30,6 +30,130 @@
     @apply grid min-h-dvh items-center justify-center p-6;
   }
 
+  .stage.with-left-panel {
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, auto) minmax(17rem, 22rem);
+    column-gap: 2rem;
+    column-gap: clamp(2rem, 3vw, 2.4rem);
+  }
+
+  .stage.with-left-panel:not(.with-tutorial) {
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, auto);
+    column-gap: 2rem;
+  }
+
+  .project-panel {
+    @apply text-white;
+    justify-self: end;
+    margin-right: clamp(3.5rem, 7vw, 7rem);
+    padding: 0.25rem 0.1rem;
+  }
+
+  .project-panel h1 {
+    @apply m-0 text-[2.05rem] font-black leading-tight text-white;
+  }
+
+  .project-panel dl {
+    @apply my-5 grid gap-3;
+  }
+
+  .project-panel dl div {
+    @apply border-l border-white/10 pl-3;
+  }
+
+  .project-panel dt {
+    @apply text-xs font-bold text-white/40;
+  }
+
+  .project-panel dd {
+    @apply m-0 mt-1 text-sm font-bold text-white/80;
+  }
+
+  .project-panel p {
+    @apply m-0 text-sm font-bold leading-relaxed text-white/80;
+    width: 33rem;
+    max-width: min(33rem, 42vw);
+    padding-left: 0.75rem;
+  }
+
+  .project-panel a {
+    @apply mt-5 inline-flex rounded-full border border-white/10 bg-white/10 text-xs font-bold text-white/70;
+    padding: 0.58rem 0.86rem;
+    text-decoration: none;
+  }
+
+  .project-panel a:hover {
+    @apply border-white/20 bg-white/15 text-white;
+  }
+
+  .tutorial-panel {
+    @apply relative text-white;
+  }
+
+  .tutorial-panel::before {
+    content: "";
+    position: absolute;
+    right: -1.25rem;
+    top: 45%;
+    width: 1.25rem;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.52), transparent);
+  }
+
+  .tutorial-card {
+    @apply rounded-2xl border border-white/10 bg-white/[0.075] p-5 shadow-2xl backdrop-blur-xl;
+  }
+
+  .tutorial-kicker {
+    @apply mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/70;
+  }
+
+  .tutorial-card strong {
+    @apply block text-xl font-black leading-tight text-white;
+  }
+
+  .tutorial-card p {
+    @apply mt-3 text-sm font-medium leading-relaxed text-white/70;
+  }
+
+  .tutorial-hint {
+    @apply mt-4 rounded-xl bg-black/20 px-3 py-2 text-xs font-semibold leading-relaxed text-white/60;
+  }
+
+  .tutorial-progress {
+    @apply relative mt-5 flex items-center justify-between overflow-hidden rounded-full bg-white/10 px-3 py-1 text-[0.7rem] font-bold text-white/60;
+  }
+
+  .tutorial-progress i {
+    @apply absolute bottom-0 left-0 h-[2px] bg-tiktok-pink;
+  }
+
+  .tutorial-actions {
+    @apply mt-4 flex items-center justify-end gap-2;
+  }
+
+  .tutorial-actions button {
+    @apply rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70;
+  }
+
+  .tutorial-actions button:hover {
+    @apply bg-white/15 text-white;
+  }
+
+  @media (max-width: 1180px) {
+    .stage.with-left-panel {
+      grid-template-columns: minmax(0, auto) minmax(17rem, 22rem);
+      column-gap: 1.8rem;
+    }
+
+    .stage.with-left-panel:not(.with-tutorial) {
+      grid-template-columns: minmax(0, auto);
+    }
+
+    .project-panel {
+      display: none !important;
+    }
+  }
+
   .phone {
     @apply relative overflow-hidden bg-black shadow-phone;
     width: min(414px, 100vw);
@@ -41,6 +165,61 @@
     @apply relative h-full w-full overflow-hidden bg-black;
     touch-action: none;
     user-select: none;
+  }
+
+  .guide-pulse {
+    position: relative;
+    z-index: 80;
+  }
+
+  .guide-pulse::after {
+    content: "";
+    position: absolute;
+    inset: -0.38rem;
+    border: 2px solid rgba(254, 44, 85, 0.92);
+    border-radius: 999px;
+    pointer-events: none;
+    animation: guidePulse 1.18s ease-out infinite;
+  }
+
+  .rebuilt-message-input.guide-pulse::after,
+  .inbox-row.guide-pulse::after,
+  .chat-video-card.guide-pulse::after {
+    border-radius: 1.2rem;
+  }
+
+  .share-svg-first-person.guide-pulse::after {
+    inset: auto;
+    left: -0.06rem;
+    top: -0.72rem;
+    width: 4.12rem;
+    height: 4.12rem;
+  }
+
+  .rebuilt-message-input.guide-pulse::after {
+    inset: -0.14rem -0.25rem 0.2rem -0.25rem;
+  }
+
+  .rebuilt-message-input.guide-pulse {
+    border-radius: 1rem;
+    box-shadow: 0 0 0 2px rgba(254, 44, 85, 0.65);
+  }
+
+  .app.guide-phone-swipe::after {
+    content: "上滑到下一条";
+    position: absolute;
+    left: 50%;
+    bottom: 7.1rem;
+    z-index: 95;
+    transform: translateX(-50%);
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.42);
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 800;
+    pointer-events: none;
+    animation: guideFloat 1.15s ease-in-out infinite;
   }
 
   .feed-track {
@@ -1829,6 +2008,29 @@
   }
 }
 
+@keyframes guidePulse {
+  0% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes guideFloat {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+
+  50% {
+    transform: translate(-50%, -0.42rem);
+  }
+}
+
 @media (max-width: 760px) {
   body {
     background: #000;
@@ -1838,6 +2040,15 @@
     display: block;
     min-height: 100dvh;
     padding: 0;
+  }
+
+  .stage.with-left-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .project-panel,
+  .tutorial-panel {
+    display: none !important;
   }
 
   .phone {

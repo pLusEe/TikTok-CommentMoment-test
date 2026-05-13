@@ -137,15 +137,223 @@ function getHomeFeedNeighbor(index, direction) {
   return [...HOME_FEED_INDICES].reverse().find((item) => item < index) ?? HOME_FEED_INDICES[HOME_FEED_INDICES.length - 1];
 }
 
+const TUTORIAL_STEPS = [
+  {
+    id: "share",
+    group: "Task 1",
+    title: "发送一条时刻评论",
+    body: "先点击右侧的分享按钮，准备把这一秒分享给 Jane。",
+    hint: "目标：右侧分享按钮",
+    target: "share-button",
+  },
+  {
+    id: "select-person",
+    group: "Task 1",
+    title: "选择 Jane",
+    body: "在发送给面板里点击第一个头像，进入发送状态。",
+    hint: "目标：头像",
+    target: "share-avatar",
+  },
+  {
+    id: "moment-toggle",
+    group: "Task 1",
+    title: "开启时刻分享",
+    body: "勾选时刻分享，让这次发送绑定到视频里的某一秒。",
+    hint: "目标：时刻分享开关",
+    target: "moment-toggle",
+  },
+  {
+    id: "comment",
+    group: "Task 1",
+    title: "可选输入留言",
+    body: "把时间点拖到 0:12 左右，再输入一句轻松的留言，比如“这件衣服是不是你也有啊”。",
+    hint: "目标：留言输入框",
+    target: "comment-input",
+  },
+  {
+    id: "time",
+    group: "Task 1",
+    title: "选择任意时刻",
+    body: "拖动时间轴选择想标记的时间点，不需要精确到某一秒。",
+    hint: "目标：时刻时间轴",
+    target: "time-slider",
+  },
+  {
+    id: "send",
+    group: "Task 1",
+    title: "发送给 Jane",
+    body: "点击发送后，视频进度条会出现一个时刻评论标记。",
+    hint: "目标：发送按钮",
+    target: "send-button",
+  },
+  {
+    id: "swipe-next",
+    group: "Task 2",
+    title: "查看好友的时刻评论",
+    body: "向上滑到首页里的下一条视频，等待 Jane 的时刻评论自动出现。",
+    hint: "目标：向上滑动视频",
+    target: "phone-swipe",
+  },
+  {
+    id: "wait-bubble",
+    group: "Task 2",
+    title: "等待评论自动出现",
+    body: "播放到 Jane 标记的时刻时，评论会自动出现；首次出现后约 3 秒收起。",
+    hint: "目标：等待自动触发",
+    target: "moment-marker",
+  },
+  {
+    id: "replay-marker",
+    group: "Task 2",
+    title: "点击时刻点复看",
+    body: "评论收起后，点击进度条上的头像点，会跳回该时间并再次显示评论。",
+    hint: "目标：进度条头像点",
+    target: "moment-marker",
+  },
+  {
+    id: "open-inbox",
+    group: "Task 3",
+    title: "打开收件箱",
+    body: "点击底部收件箱，进入你和 Jane 的消息入口。",
+    hint: "目标：收件箱",
+    target: "inbox-tab",
+  },
+  {
+    id: "open-chat",
+    group: "Task 3",
+    title: "进入 Jane 对话",
+    body: "点击 Jane 的消息，查看她分享给你的时刻评论。",
+    hint: "目标：Jane 消息",
+    target: "jane-row",
+  },
+  {
+    id: "open-shared-video",
+    group: "Task 3",
+    title: "打开 Jane 分享的视频",
+    body: "点击对话里的视频卡片，会直接跳到 Jane 标记的时刻位置。",
+    hint: "目标：视频卡片",
+    target: "chat-video",
+  },
+  {
+    id: "done",
+    group: "完成",
+    title: "完整流程已完成",
+    body: "你已经演示了发送、查看和从私信打开时刻评论的完整链路。",
+    hint: "可以继续自由体验原型",
+    target: null,
+  },
+];
+
+const TUTORIAL_STEP_INDEX = Object.fromEntries(TUTORIAL_STEPS.map((step, index) => [step.id, index]));
+
 export default function App() {
+  const [tutorialStepId, setTutorialStepId] = useState("share");
+  const [tutorialDismissed, setTutorialDismissed] = useState(false);
+  const tutorialStep = TUTORIAL_STEPS[TUTORIAL_STEP_INDEX[tutorialStepId]] || TUTORIAL_STEPS[0];
+
+  const goToTutorialStep = (nextId) => {
+    if (!nextId || tutorialStepId === nextId) return;
+    setTutorialStepId(nextId);
+  };
+
+  const guideAction = (action, payload = {}) => {
+    if (tutorialDismissed) return;
+    const current = tutorialStepId;
+
+    if (current === "share" && action === "openShare") goToTutorialStep("select-person");
+    if (current === "select-person" && action === "selectPerson") goToTutorialStep("moment-toggle");
+    if (current === "moment-toggle" && action === "toggleMoment" && payload.enabled) goToTutorialStep("comment");
+    if (current === "comment" && action === "commentInput") goToTutorialStep("time");
+    if ((current === "comment" || current === "time") && action === "momentScrub") goToTutorialStep("send");
+    if ((current === "comment" || current === "time" || current === "send") && action === "sendMoment") goToTutorialStep("swipe-next");
+    if (current === "swipe-next" && action === "homeVideoChanged" && payload.index === HOME_FEED_INDICES[1]) goToTutorialStep("wait-bubble");
+    if (current === "wait-bubble" && action === "momentBubbleShown") {
+      window.setTimeout(() => {
+        setTutorialStepId((value) => (value === "wait-bubble" ? "replay-marker" : value));
+      }, 3200);
+    }
+    if (current === "replay-marker" && action === "markerReplay") goToTutorialStep("open-inbox");
+    if (current === "open-inbox" && action === "openInbox") goToTutorialStep("open-chat");
+    if (current === "open-chat" && action === "openChat") goToTutorialStep("open-shared-video");
+    if (current === "open-shared-video" && action === "openSharedVideo") goToTutorialStep("done");
+  };
+
+  const resetTutorial = () => {
+    setTutorialDismissed(false);
+    setTutorialStepId("share");
+  };
+
   return (
-    <main className="stage">
-      <PhonePrototype />
+    <main className={`stage with-left-panel ${tutorialDismissed ? "" : "with-tutorial"}`}>
+      <ProjectInfoPanel />
+      <PhonePrototype
+        guideAction={guideAction}
+        guideTarget={tutorialDismissed ? null : tutorialStep.target}
+      />
+      {!tutorialDismissed && (
+        <TutorialPanel
+          step={tutorialStep}
+          index={TUTORIAL_STEP_INDEX[tutorialStep.id] + 1}
+          total={TUTORIAL_STEPS.length}
+          onSkip={() => setTutorialDismissed(true)}
+          onReset={resetTutorial}
+        />
+      )}
     </main>
   );
 }
 
-function PhonePrototype() {
+function ProjectInfoPanel() {
+  return (
+    <aside className="project-panel" aria-label="项目介绍">
+      <h1>TikTok时刻分享</h1>
+      <dl>
+        <div>
+          <dt>设计师</dt>
+          <dd>jiayi wang 王佳奕</dd>
+        </div>
+        <div>
+          <dt>时间</dt>
+          <dd>2026/05</dd>
+        </div>
+      </dl>
+      <p>
+        面向 TikTok 好友间分享场景的轻量交互原型。用户可以把评论绑定到视频的某一秒，
+        让接收者在播放到关键时刻时看到朋友的即时反应。
+      </p>
+      <a
+        href="https://www.figma.com/design/pKFx07nadHqtYLC5vq0Y88/%E6%8A%96%E9%9F%B3-%E6%97%B6%E5%88%BB%E8%AF%84%E8%AE%BA260512?node-id=74-2445&t=j37N0B2rmnpIqDkq-1"
+        target="_blank"
+        rel="noreferrer"
+      >
+        查看设计说明
+      </a>
+    </aside>
+  );
+}
+
+function TutorialPanel({ step, index, total, onSkip, onReset }) {
+  return (
+    <aside className="tutorial-panel" aria-label="原型演示指引">
+      <div className="tutorial-card">
+        <span className="tutorial-kicker">{step.group}</span>
+        <strong>{step.title}</strong>
+        <p>{step.body}</p>
+        <div className="tutorial-hint">{step.hint}</div>
+        <div className="tutorial-progress">
+          <span>{index} / {total}</span>
+          <i style={{ width: `${(index / total) * 100}%` }} />
+        </div>
+        <div className="tutorial-actions">
+          <button type="button" onClick={onReset}>重新开始</button>
+          <button type="button" onClick={onSkip}>跳过指引</button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function PhonePrototype({ guideAction = () => {}, guideTarget = null }) {
   const appRef = useRef(null);
   const videoRefs = useRef([]);
   const bubbleTimer = useRef(null);
@@ -180,6 +388,7 @@ function PhonePrototype() {
   const currentTime = progress * duration;
   const momentItems = Array.isArray(moments) ? moments : DEFAULT_MOMENTS;
   const activeMoment = momentItems.find((item) => item.videoIndex === activeIndex);
+  const guideClass = (target) => (guideTarget === target ? "guide-pulse" : "");
   const markerX = activeMoment ? `${Math.max(2, Math.min(98, (activeMoment.time / duration) * 100))}%` : "35%";
   const nativeScrubPercent = duration > 0 ? Math.max(0, Math.min(100, (draftMomentTime / duration) * 100)) : 0;
   const appWidth = appRef.current?.clientWidth || 414;
@@ -213,6 +422,8 @@ function PhonePrototype() {
     if (nextView === "feed" && !HOME_FEED_INDICES.includes(activeIndex)) {
       setActiveIndex(HOME_FEED_INDICES[0]);
     }
+    if (nextView === "inbox") guideAction("openInbox");
+    if (nextView === "chat") guideAction("openChat");
     setAppView(nextView);
     setPanel(null);
     setShowBubble(false);
@@ -224,6 +435,7 @@ function PhonePrototype() {
   const openSharedMomentFromChat = (momentOverride) => {
     const sharedMoment = momentOverride || DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey");
     if (!sharedMoment) return;
+    guideAction("openSharedVideo");
 
     setAppView("feed");
     setPanel(null);
@@ -293,12 +505,14 @@ function PhonePrototype() {
     setDraftMomentTime(currentTime);
     setComment("");
     setPanel("share");
+    guideAction("openShare");
   };
 
   const handleSelectSharePerson = () => {
     setIsMomentEnabled(false);
     setIsMomentScrubbing(false);
     setDraftMomentTime(currentTime);
+    guideAction("selectPerson");
   };
 
   const toggleMomentShare = () => {
@@ -310,11 +524,13 @@ function PhonePrototype() {
     }
     setDraftMomentTime(currentTime);
     setIsMomentEnabled(true);
+    guideAction("toggleMoment", { enabled: true });
   };
 
   const beginMomentScrub = () => {
     setIsMomentScrubbing(true);
     setPausedState(true);
+    guideAction("momentScrub");
   };
 
   const endMomentScrub = () => {
@@ -336,6 +552,9 @@ function PhonePrototype() {
     setIsMomentEnabled(false);
     setIsMomentScrubbing(false);
     setActiveIndex(clamped);
+    if (HOME_FEED_INDICES.includes(clamped)) {
+      guideAction("homeVideoChanged", { index: clamped });
+    }
   };
 
   const forceBubble = ({ jumpToMoment = false } = {}) => {
@@ -348,10 +567,12 @@ function PhonePrototype() {
     window.clearTimeout(bubbleTimer.current);
     bubbleTimer.current = window.setTimeout(() => setShowBubble(false), 3000);
     setMoments((value) => value.map((item) => (item.id === activeMoment.id ? { ...item, seenOnce: true } : item)));
+    guideAction("momentBubbleShown", { id: activeMoment.id });
   };
 
   const handleMomentMarkerClick = () => {
     forceBubble({ jumpToMoment: true });
+    guideAction("markerReplay");
   };
 
   const maybeShowBubble = (time) => {
@@ -391,6 +612,7 @@ function PhonePrototype() {
   const sendShare = () => {
     if (isMomentEnabled) {
       saveMoment(draftMomentTime);
+      guideAction("sendMoment");
       return;
     }
     setPanel(null);
@@ -536,7 +758,7 @@ function PhonePrototype() {
     <section className="phone" aria-label="移动端抖音原型">
       <div
         ref={appRef}
-        className={`app ${appView === "inbox" || appView === "chat" ? "inbox-app" : ""} ${isSharedEntry ? "shared-entry" : ""} ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""}`}
+        className={`app ${appView === "inbox" || appView === "chat" ? "inbox-app" : ""} ${isSharedEntry ? "shared-entry" : ""} ${isDragging ? "dragging" : ""} ${isSettling ? "settling" : ""} ${isResettingFeed ? "resetting" : ""} ${isMomentScrubbing ? "moment-scrubbing" : ""} ${guideTarget === "phone-swipe" ? "guide-phone-swipe" : ""}`}
         style={isSharedEntry ? {
           "--shared-drag-x": `${dragOffsetX}px`,
           "--shared-drag-y": `${dragOffset}px`,
@@ -556,14 +778,14 @@ function PhonePrototype() {
         } : undefined}
       >
         {appView === "chat" ? (
-          <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} sentMoments={sentChatMoments} />
+          <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} sentMoments={sentChatMoments} guideTarget={guideTarget} />
         ) : appView === "inbox" ? (
-          <InboxPage onNavigate={navigateApp} onOpenChat={() => navigateApp("chat")} />
+          <InboxPage onNavigate={navigateApp} onOpenChat={() => navigateApp("chat")} guideTarget={guideTarget} />
         ) : (
         <>
         {isSharedEntry && (
           <div className="shared-chat-underlay" aria-hidden="true">
-            <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} sentMoments={sentChatMoments} />
+            <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} sentMoments={sentChatMoments} guideTarget={guideTarget} />
           </div>
         )}
         <div
@@ -600,6 +822,7 @@ function PhonePrototype() {
                 item={item}
                 isActive={index === activeIndex}
                 onShare={openShare}
+                guideTarget={guideTarget}
               />
             </article>
           ))}
@@ -611,7 +834,7 @@ function PhonePrototype() {
           <TopChrome />
         )}
 
-        <div className={`moment-marker ${activeMoment ? "show" : ""} ${activeMoment?.seenOnce ? "collapsed" : ""}`} style={{ "--x": markerX }}>
+        <div className={`moment-marker ${activeMoment ? "show" : ""} ${activeMoment?.seenOnce ? "collapsed" : ""} ${guideClass("moment-marker")}`} style={{ "--x": markerX }}>
           <button className="marker-avatar" type="button" onClick={handleMomentMarkerClick}>
             {activeMoment?.avatar ? <img src={activeMoment.avatar} alt="" /> : activeMoment?.fallback || "J"}
           </button>
@@ -679,18 +902,22 @@ function PhonePrototype() {
         {isSharedEntry ? (
           <SharedReplyBar />
         ) : (
-          <AppBottomNav active="home" onNavigate={navigateApp} />
+          <AppBottomNav active="home" onNavigate={navigateApp} guideTarget={guideTarget} />
         )}
 
         {panel === "share" && (
           <ShareSheet
             people={people}
             comment={comment}
-            setComment={setComment}
+            setComment={(value) => {
+              setComment(value);
+              guideAction("commentInput");
+            }}
             duration={duration}
             draftMomentTime={draftMomentTime}
             isMomentEnabled={isMomentEnabled}
             isMomentScrubbing={isMomentScrubbing}
+            guideTarget={guideTarget}
             onSelectPerson={handleSelectSharePerson}
             onToggleMoment={toggleMomentShare}
             onMomentScrubStart={beginMomentScrub}
@@ -727,7 +954,7 @@ function PhonePrototype() {
   );
 }
 
-function VideoChrome({ item, onShare }) {
+function VideoChrome({ item, onShare, guideTarget }) {
   return (
     <div className="video-chrome">
       <aside className="right-rail" aria-label="视频操作">
@@ -740,7 +967,7 @@ function VideoChrome({ item, onShare }) {
         <ActionButton icon={likeIcon} label="点赞" value={item.likes} />
         <ActionButton icon={commentIcon} label="评论" value={item.comments} />
         <ActionButton icon={favoriteIcon} label="收藏" value={item.favorites} />
-        <ActionButton icon={shareIcon} label="分享" value={item.shares} onClick={onShare} />
+        <ActionButton icon={shareIcon} label="分享" value={item.shares} onClick={onShare} guided={guideTarget === "share-button"} />
         <div className="music-disc" style={{ "--avatar": `url(${item.avatar})`, backgroundColor: item.avatarColor }}>
           <span>{item.avatarFallback}</span>
         </div>
@@ -828,7 +1055,7 @@ function BottomNav() {
   );
 }
 
-function AppBottomNav({ active = "home", variant = "dark", onNavigate = () => {} }) {
+function AppBottomNav({ active = "home", variant = "dark", onNavigate = () => {}, guideTarget = null }) {
   return (
     <nav className={`bottom-nav ${variant === "light" ? "light" : ""}`} aria-label="底部导航">
       <button className={`nav-tab ${active === "home" ? "active" : ""}`} type="button" aria-label="首页" onClick={() => onNavigate("feed")}>
@@ -842,7 +1069,7 @@ function AppBottomNav({ active = "home", variant = "dark", onNavigate = () => {}
       <button className="nav-tab publish-tab" type="button" aria-label="发布">
         <img src={plusNav} alt="" />
       </button>
-      <button className={`nav-tab ${active === "inbox" ? "active" : ""}`} type="button" aria-label="收件箱" onClick={() => onNavigate("inbox")}>
+      <button className={`nav-tab ${active === "inbox" ? "active" : ""} ${guideTarget === "inbox-tab" ? "guide-pulse" : ""}`} type="button" aria-label="收件箱" onClick={() => onNavigate("inbox")}>
         <span className="nav-icon-frame"><img src={inboxNav} alt="" /></span>
         <span className="nav-label">收件箱</span>
       </button>
@@ -854,7 +1081,7 @@ function AppBottomNav({ active = "home", variant = "dark", onNavigate = () => {}
   );
 }
 
-function InboxPage({ onNavigate, onOpenChat }) {
+function InboxPage({ onNavigate, onOpenChat, guideTarget = null }) {
   return (
     <section className="inbox-page" aria-label="收件箱">
       <img className="inbox-status-bar" src={statusBar} alt="" />
@@ -882,14 +1109,14 @@ function InboxPage({ onNavigate, onOpenChat }) {
       </section>
 
       <section className="inbox-list" aria-label="消息列表">
-        <InboxRow avatar={janeAvatar} title="jane" subtitle="[分享时刻评论]" unread onClick={onOpenChat} />
+        <InboxRow avatar={janeAvatar} title="jane" subtitle="[分享时刻评论]" unread onClick={onOpenChat} guided={guideTarget === "jane-row"} />
       </section>
-      <AppBottomNav active="inbox" variant="light" onNavigate={onNavigate} />
+      <AppBottomNav active="inbox" variant="light" onNavigate={onNavigate} guideTarget={guideTarget} />
     </section>
   );
 }
 
-function ChatPage({ onBack, onOpenMoment, sentMoments = [] }) {
+function ChatPage({ onBack, onOpenMoment, sentMoments = [], guideTarget = null }) {
   const sharedMoment = DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey") || DEFAULT_MOMENTS[0];
   const sharedItem = FEED_ITEMS[sharedMoment.videoIndex];
   const chatBodyRef = useRef(null);
@@ -940,7 +1167,7 @@ function ChatPage({ onBack, onOpenMoment, sentMoments = [] }) {
         <div className="chat-message-row">
           <span className="chat-avatar"><img src={janeAvatar} alt="" /></span>
           <div className="chat-message-stack">
-            <button className="chat-video-card" type="button" onClick={() => onOpenMoment(sharedMoment)}>
+            <button className={`chat-video-card ${guideTarget === "chat-video" ? "guide-pulse" : ""}`} type="button" onClick={() => onOpenMoment(sharedMoment)}>
               <span className="chat-video-thumb">
                 <img src={sharedItem.preview} alt="" />
                 <i className="chat-play" aria-hidden="true" />
@@ -981,14 +1208,14 @@ function ChatPage({ onBack, onOpenMoment, sentMoments = [] }) {
   );
 }
 
-function ChatMomentMessage({ item, moment, avatar, outgoing = false, onOpenMoment }) {
+function ChatMomentMessage({ item, moment, avatar, outgoing = false, onOpenMoment, guided = false }) {
   return (
     <div className={`chat-message-row ${outgoing ? "outgoing" : ""}`}>
       {!outgoing && (
         <span className="chat-avatar"><img src={avatar} alt="" /></span>
       )}
       <div className="chat-message-stack">
-        <button className="chat-video-card" type="button" onClick={onOpenMoment}>
+        <button className={`chat-video-card ${guided ? "guide-pulse" : ""}`} type="button" onClick={onOpenMoment}>
           <span className="chat-video-thumb">
             <img src={item.preview} alt="" />
             <i className="chat-play" aria-hidden="true" />
@@ -1002,10 +1229,10 @@ function ChatMomentMessage({ item, moment, avatar, outgoing = false, onOpenMomen
   );
 }
 
-function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot = false, right, onClick }) {
+function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot = false, right, onClick, guided = false }) {
   const RowTag = onClick ? "button" : "article";
   return (
-    <RowTag className="inbox-row" type={onClick ? "button" : undefined} onClick={onClick}>
+    <RowTag className={`inbox-row ${guided ? "guide-pulse" : ""}`} type={onClick ? "button" : undefined} onClick={onClick}>
       <span className={`inbox-row-avatar ${iconClass || ""}`}>
         {avatar ? <img src={avatar} alt="" /> : null}
       </span>
@@ -1020,9 +1247,9 @@ function InboxRow({ avatar, iconClass, title, subtitle, unread = false, redDot =
   );
 }
 
-function ActionButton({ icon, label, value, onClick }) {
+function ActionButton({ icon, label, value, onClick, guided = false }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick}>
+    <button className={guided ? "guide-pulse" : ""} type="button" aria-label={label} onClick={onClick}>
       <span className="action-icon-crop"><img src={icon} alt="" /></span>
       <small>{value}</small>
     </button>
@@ -1037,6 +1264,7 @@ function ShareSheet({
   draftMomentTime,
   isMomentEnabled,
   isMomentScrubbing,
+  guideTarget = null,
   onSelectPerson,
   onToggleMoment,
   onMomentScrubStart,
@@ -1055,7 +1283,7 @@ function ShareSheet({
         <img className="share-sheet-svg" src={shareSheetSvg} alt="发送给" />
         <button className="share-svg-close" type="button" aria-label="关闭" onClick={onClose} />
         <button
-          className="share-svg-first-person"
+          className={`share-svg-first-person ${guideTarget === "share-avatar" ? "guide-pulse" : ""}`}
           type="button"
           aria-label="选择 jiayiwang578"
           onClick={() => {
@@ -1098,7 +1326,7 @@ function ShareSheet({
             ))}
           </div>
 
-          <button className={`rebuilt-moment-toggle ${isMomentEnabled ? "enabled" : ""}`} type="button" onClick={onToggleMoment}>
+          <button className={`rebuilt-moment-toggle ${isMomentEnabled ? "enabled" : ""} ${guideTarget === "moment-toggle" ? "guide-pulse" : ""}`} type="button" onClick={onToggleMoment}>
             <strong>时刻分享</strong>
             <span className="rebuilt-moment-right">
               <small>评论在 {formatTime(draftMomentTime)}</small>
@@ -1114,10 +1342,11 @@ function ShareSheet({
               onScrubStart={onMomentScrubStart}
               onScrubEnd={onMomentScrubEnd}
               onTimeChange={onMomentTimeChange}
+              guided={guideTarget === "time-slider"}
             />
           )}
 
-          <button className="rebuilt-send-button" type="button" onClick={onSend}>发送</button>
+          <button className={`rebuilt-send-button ${guideTarget === "send-button" ? "guide-pulse" : ""}`} type="button" onClick={onSend}>发送</button>
         </div>
       </div>
     </section>
@@ -1130,14 +1359,14 @@ function updateTimeFromPointer(event, duration, onTimeChange) {
   onTimeChange(nextProgress * duration);
 }
 
-function MomentTimeControl({ compact = false, duration, time, onStep, onScrubStart, onScrubEnd, onTimeChange }) {
+function MomentTimeControl({ compact = false, duration, time, onStep, onScrubStart, onScrubEnd, onTimeChange, guided = false }) {
   const progressPercent = `${Math.max(0, Math.min(100, (time / duration) * 100))}%`;
   const updateFromPointer = (event) => updateTimeFromPointer(event, duration, onTimeChange);
 
   return (
     <div className={`moment-time-control ${compact ? "compact" : ""}`}>
       <div
-        className="moment-time-slider"
+        className={`moment-time-slider ${guided ? "guide-pulse" : ""}`}
         role="slider"
         aria-label="时刻分享时间点"
         aria-valuemin="0"
