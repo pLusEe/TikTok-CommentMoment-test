@@ -761,7 +761,14 @@
     @apply relative z-[1] px-4;
     height: calc(100% - 10.8rem);
     padding-top: 1.2rem;
-    overflow: hidden;
+    padding-bottom: 7rem;
+    overflow-y: auto;
+    touch-action: pan-y;
+    scrollbar-width: none;
+  }
+
+  .chat-body::-webkit-scrollbar {
+    display: none;
   }
 
   .chat-date {
@@ -774,6 +781,15 @@
     column-gap: 0.62rem;
   }
 
+  .chat-message-row + .chat-message-row {
+    margin-top: 1.35rem;
+  }
+
+  .chat-message-row.outgoing {
+    @apply justify-items-end;
+    grid-template-columns: 1fr;
+  }
+
   .chat-avatar {
     @apply block overflow-hidden rounded-full bg-[#2d6f1f];
     width: 1.88rem;
@@ -783,6 +799,10 @@
 
   .chat-message-stack {
     @apply min-w-0;
+  }
+
+  .chat-message-row.outgoing .chat-message-stack {
+    @apply flex flex-col items-end;
   }
 
   .chat-moment-note {
@@ -840,6 +860,10 @@
 
   .chat-moment-comment {
     @apply mt-4 inline-block rounded-full bg-[#f2f2f2] px-4 py-3 text-[0.9rem] font-medium leading-tight text-[#111];
+  }
+
+  .chat-message-row.outgoing .chat-moment-comment {
+    @apply bg-[#2f7cff] text-white;
   }
 
   .chat-composer {

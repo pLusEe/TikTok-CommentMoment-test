@@ -172,6 +172,7 @@ function PhonePrototype() {
   const [isMomentScrubbing, setIsMomentScrubbing] = useState(false);
   const [isSharedEntry, setIsSharedEntry] = useState(false);
   const [moments, setMoments] = useState(DEFAULT_MOMENTS);
+  const [sentChatMoments, setSentChatMoments] = useState([]);
 
   const activeItem = FEED_ITEMS[activeIndex];
   const activeVideo = videoRefs.current[activeIndex];
@@ -220,8 +221,8 @@ function PhonePrototype() {
     setDragOffset(0);
   };
 
-  const openSharedMomentFromChat = () => {
-    const sharedMoment = DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey");
+  const openSharedMomentFromChat = (momentOverride) => {
+    const sharedMoment = momentOverride || DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey");
     if (!sharedMoment) return;
 
     setAppView("feed");
@@ -248,9 +249,7 @@ function PhonePrototype() {
       }
       setProgress(sharedMoment.time / videoDuration);
       setShowBubble(true);
-      setMoments((value) =>
-        value.map((item) => (item.id === sharedMoment.id ? { ...item, seenOnce: true } : item))
-      );
+      setMoments((value) => value.map((item) => (item.id === sharedMoment.id ? { ...item, seenOnce: true } : item)));
       bubbleTimer.current = window.setTimeout(() => setShowBubble(false), 3200);
     }, 90);
   };
@@ -373,6 +372,13 @@ function PhonePrototype() {
       seenOnce: false,
     };
     setMoments((value) => [...value.filter((item) => item.videoIndex !== activeIndex), nextMoment]);
+    setSentChatMoments((value) => [
+      ...value.filter((item) => item.id !== nextMoment.id),
+      {
+        ...nextMoment,
+        item: FEED_ITEMS[activeIndex],
+      },
+    ]);
     setFriendView(true);
     setPanel(null);
     showToast("已发送给 Jess");
@@ -550,14 +556,14 @@ function PhonePrototype() {
         } : undefined}
       >
         {appView === "chat" ? (
-          <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} />
+          <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} sentMoments={sentChatMoments} />
         ) : appView === "inbox" ? (
           <InboxPage onNavigate={navigateApp} onOpenChat={() => navigateApp("chat")} />
         ) : (
         <>
         {isSharedEntry && (
           <div className="shared-chat-underlay" aria-hidden="true">
-            <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} />
+            <ChatPage onBack={() => navigateApp("inbox")} onOpenMoment={openSharedMomentFromChat} sentMoments={sentChatMoments} />
           </div>
         )}
         <div
@@ -883,9 +889,33 @@ function InboxPage({ onNavigate, onOpenChat }) {
   );
 }
 
-function ChatPage({ onBack, onOpenMoment }) {
-  const sharedItem = FEED_ITEMS[1];
+function ChatPage({ onBack, onOpenMoment, sentMoments = [] }) {
   const sharedMoment = DEFAULT_MOMENTS.find((item) => item.id === "jane-donkey") || DEFAULT_MOMENTS[0];
+  const sharedItem = FEED_ITEMS[sharedMoment.videoIndex];
+  const chatBodyRef = useRef(null);
+  const chatDragRef = useRef(null);
+
+  const handleChatPointerDown = (event) => {
+    if (event.target.closest("button")) return;
+    chatDragRef.current = {
+      pointerId: event.pointerId,
+      y: event.clientY,
+      scrollTop: chatBodyRef.current?.scrollTop || 0,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleChatPointerMove = (event) => {
+    if (!chatDragRef.current || !chatBodyRef.current) return;
+    const dy = event.clientY - chatDragRef.current.y;
+    chatBodyRef.current.scrollTop = chatDragRef.current.scrollTop - dy;
+  };
+
+  const endChatDrag = (event) => {
+    if (!chatDragRef.current) return;
+    event.currentTarget.releasePointerCapture(chatDragRef.current.pointerId);
+    chatDragRef.current = null;
+  };
 
   return (
     <section className="chat-page" aria-label="与 jane 的对话">
@@ -898,12 +928,19 @@ function ChatPage({ onBack, onOpenMoment }) {
         <button className="chat-more" type="button" aria-label="更多"><i /><i /><i /></button>
       </header>
 
-      <main className="chat-body">
+      <main
+        className="chat-body"
+        ref={chatBodyRef}
+        onPointerDown={handleChatPointerDown}
+        onPointerMove={handleChatPointerMove}
+        onPointerUp={endChatDrag}
+        onPointerCancel={endChatDrag}
+      >
         <div className="chat-date">星期一 下午9:54</div>
         <div className="chat-message-row">
           <span className="chat-avatar"><img src={janeAvatar} alt="" /></span>
           <div className="chat-message-stack">
-            <button className="chat-video-card" type="button" onClick={onOpenMoment}>
+            <button className="chat-video-card" type="button" onClick={() => onOpenMoment(sharedMoment)}>
               <span className="chat-video-thumb">
                 <img src={sharedItem.preview} alt="" />
                 <i className="chat-play" aria-hidden="true" />
@@ -914,6 +951,15 @@ function ChatPage({ onBack, onOpenMoment }) {
             <span className="chat-moment-comment">{sharedMoment.text}</span>
           </div>
         </div>
+        {sentMoments.map((moment) => (
+          <ChatMomentMessage
+            key={moment.id}
+            item={moment.item || FEED_ITEMS[moment.videoIndex]}
+            moment={moment}
+            outgoing
+            onOpenMoment={() => onOpenMoment(moment)}
+          />
+        ))}
       </main>
 
       <footer className="chat-composer" aria-hidden="true">
@@ -932,6 +978,27 @@ function ChatPage({ onBack, onOpenMoment }) {
         </div>
       </footer>
     </section>
+  );
+}
+
+function ChatMomentMessage({ item, moment, avatar, outgoing = false, onOpenMoment }) {
+  return (
+    <div className={`chat-message-row ${outgoing ? "outgoing" : ""}`}>
+      {!outgoing && (
+        <span className="chat-avatar"><img src={avatar} alt="" /></span>
+      )}
+      <div className="chat-message-stack">
+        <button className="chat-video-card" type="button" onClick={onOpenMoment}>
+          <span className="chat-video-thumb">
+            <img src={item.preview} alt="" />
+            <i className="chat-play" aria-hidden="true" />
+            <b className="chat-time-badge">时刻 {formatTime(moment.time)}</b>
+            <strong>{item.author}</strong>
+          </span>
+        </button>
+        {moment.text && <span className="chat-moment-comment">{moment.text}</span>}
+      </div>
+    </div>
   );
 }
 
