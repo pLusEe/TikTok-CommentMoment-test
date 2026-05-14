@@ -28,6 +28,7 @@
 @layer components {
   .stage {
     @apply grid min-h-dvh items-center justify-center p-6;
+    --phone-scale: 1;
   }
 
   .stage.with-left-panel {
@@ -154,12 +155,46 @@
     }
   }
 
+  @media (max-width: 1040px) {
+    .stage.with-left-panel {
+      grid-template-columns: minmax(0, auto);
+    }
+
+    .tutorial-panel {
+      display: none !important;
+    }
+  }
+
+  @media (max-height: 920px) and (min-width: 761px) {
+    .stage {
+      --phone-scale: 0.94;
+    }
+  }
+
+  @media (max-height: 840px) and (min-width: 761px) {
+    .stage {
+      --phone-scale: 0.86;
+    }
+  }
+
+  @media (max-height: 760px) and (min-width: 761px) {
+    .stage {
+      --phone-scale: 0.78;
+    }
+  }
+
+  .phone-frame {
+    width: calc(414px * var(--phone-scale));
+    height: calc(896px * var(--phone-scale));
+  }
+
   .phone {
     @apply relative overflow-hidden bg-black shadow-phone;
-    width: auto;
-    height: min(896px, calc(100dvh - 3rem));
-    aspect-ratio: 414 / 896;
+    width: 414px;
+    height: 896px;
     border-radius: 34px;
+    transform: scale(var(--phone-scale));
+    transform-origin: top left;
   }
 
   .app {
@@ -2035,10 +2070,16 @@
     display: none !important;
   }
 
+  .phone-frame {
+    width: 100vw;
+    height: 100dvh;
+  }
+
   .phone {
     width: 100vw;
     height: 100dvh;
     border-radius: 0;
     box-shadow: none;
+    transform: none;
   }
 }

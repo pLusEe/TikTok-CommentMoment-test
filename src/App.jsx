@@ -286,10 +286,12 @@ export default function App() {
   return (
     <main className={`stage with-left-panel ${tutorialDismissed ? "" : "with-tutorial"}`}>
       <ProjectInfoPanel />
-      <PhonePrototype
-        guideAction={guideAction}
-        guideTarget={tutorialDismissed ? null : tutorialStep.target}
-      />
+      <div className="phone-frame">
+        <PhonePrototype
+          guideAction={guideAction}
+          guideTarget={tutorialDismissed ? null : tutorialStep.target}
+        />
+      </div>
       {!tutorialDismissed && (
         <TutorialPanel
           step={tutorialStep}
