@@ -139,7 +139,7 @@
     @apply bg-white/15 text-white;
   }
 
-  @media (max-width: 1180px) {
+  @media (max-width: 1400px) {
     .stage.with-left-panel {
       grid-template-columns: minmax(0, auto) minmax(17rem, 22rem);
       column-gap: 1.8rem;
