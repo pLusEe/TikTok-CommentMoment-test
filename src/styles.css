@@ -139,7 +139,7 @@
     @apply bg-white/15 text-white;
   }
 
-  @media (max-width: 1400px) {
+  @media (max-width: 1536px) {
     .stage.with-left-panel {
       grid-template-columns: minmax(0, auto) minmax(17rem, 22rem);
       column-gap: 1.8rem;
@@ -156,8 +156,9 @@
 
   .phone {
     @apply relative overflow-hidden bg-black shadow-phone;
-    width: min(414px, 100vw);
-    height: min(896px, 100dvh);
+    width: auto;
+    height: min(896px, calc(100dvh - 3rem));
+    aspect-ratio: 414 / 896;
     border-radius: 34px;
   }
 
